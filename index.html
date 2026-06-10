@@ -88,6 +88,54 @@
 .game-card.amber .card-title { color: var(--led-amber); text-shadow: 0 0 8px rgba(255,170,0,0.35); }
 .card-desc { font-size: 0.62rem; color: var(--text-dim); letter-spacing: 0.06em; margin-top: 0.25rem; line-height: 1.4; }
 .card-arrow { color: var(--text-dim); font-size: 1rem; flex-shrink: 0; }
+
+/* ── Footer ── */
+.hub-footer {
+  margin-top: auto;
+  padding: 1.8rem 0 2rem;
+}
+.footer-line {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin-bottom: 1.2rem;
+}
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.footer-by {
+  font-size: 0.58rem;
+  color: var(--text-dim);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.footer-name {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.footer-name:hover { color: var(--text-bright); }
+/* Ko-fi button — uncomment when ready */
+.footer-kofi {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 2rem;
+  color: var(--text-dim);
+  font-family: var(--seg);
+  font-size: 0.65rem;
+  padding: 0.3rem 0.7rem;
+  text-decoration: none;
+  letter-spacing: 0.08em;
+  transition: all 0.15s;
+}
+.footer-kofi:hover { border-color: var(--led-amber); color: var(--led-amber); }
 </style>
 
 <script src="sfx.js"></script>
@@ -227,6 +275,21 @@
       <div class="card-arrow">›</div>
     </a>
   </div>
+
+<footer class="hub-footer">
+  <div class="footer-line"></div>
+  <div class="footer-content">
+
+    <span class="footer-by">by <a class="footer-name" href="https://jucofuco.github.io" target="_blank" rel="noopener">jucofuco</a></span>
+
+    <!--
+    <a class="footer-kofi" href="https://ko-fi.com/YOUR_KOFI_NAME" target="_blank" rel="noopener">
+      ☕ posli mi 5 euro
+    </a>
+    -->
+
+  </div>
+</footer>
 
 </div>
 <script>
