@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>KRIKET · DARts</title>
+<link rel="stylesheet" href="../common.css">
+
+<script src="../sfx.js"></script>
+<script src="../utils.js"></script>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     SETUP SCREEN
+══════════════════════════════════════ -->
+<div id="setup-screen" class="setup-wrap">
+
+  <div class="setup-top">
+    <a class="back-btn" href="../index.html">◂ HUB</a>
+    <div class="setup-title">KRIKET BEZ BULZAJZ</div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ PLAYERS ]</span>
+    <div class="chip-row" id="player-chips">
+      <div class="chip on" data-n="2">2</div>
+      <div class="chip" data-n="3">3</div>
+      <div class="chip" data-n="4">4</div>
+      <div class="chip" data-n="5">5</div>
+      <div class="chip" data-n="6">6</div>
+      <div class="chip" data-n="7">7</div>
+      <div class="chip" data-n="8">8</div>
+    </div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ NAMES ]</span>
+    <div id="player-names"></div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ SELECT 7 NUMBERS ]</span>
+    <div class="num-count">Selected: <span id="sel-count">0</span> / 7</div>
+    <div class="num-grid" id="num-grid"></div>
+    <button class="btn-random" id="random-btn">[ RANDOM 7 ]</button>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ ROUND LIMIT ]</span>
+    <div class="row2">
+      <input class="led-input-sm" type="number" id="max-rounds" value="20" min="0" max="99">
+      <span class="row2-hint">max rounds per player<br>0 = unlimited</span>
+    </div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ OPTIONS ]</span>
+    <div class="pill-row">
+      <label class="pill" id="pill-ct">
+        <input type="checkbox" id="opt-ct"> CUT-THROAT
+      </label>
+    </div>
+  </div>
+
+  <button class="btn-start" id="start-btn">[ START GAME ]</button>
+  <button class="btn-resume" id="resume-btn" style="display:none">[ RESUME SAVED ]</button>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     GAME SCREEN
+══════════════════════════════════════ -->
+<div id="game-screen" class="game-wrap" style="display:none">
+
+  <div class="top-bar">
+    <div style="display:flex;align-items:center">
+      <span class="game-logo">KRIKET BEZ BULZAJZ</span>
+      <span class="r-badge" id="r-badge">R1</span>
+    </div>
+    <div class="top-btns">
+      <button class="theme-btn" id="theme-btn">☀</button>
+      <button class="top-btn" id="save-btn">SAVE</button>
+      <button class="top-btn danger" id="end-btn">END</button>
+    </div>
+  </div>
+
+  <div class="last-bar" id="last-bar">*** FINAL ROUND ***</div>
+
+  <div class="game-scroll">
+    <table class="score-table" id="score-table"></table>
+  </div>
+
+  <div class="input-panel">
+    <div class="turn-row">
+      <div>
+        <div class="turn-lbl">NOW THROWING</div>
+        <div class="turn-name" id="turn-name">---</div>
+      </div>
+      <div class="throw-slots">
+        <div class="tslot" id="ts0"></div>
+        <div class="tslot" id="ts1"></div>
+        <div class="tslot" id="ts2"></div>
+      </div>
+    </div>
+
+    <div class="mult-row" id="mult-row">
+      <button class="mbtn active" data-m="1">SINGLE</button>
+      <button class="mbtn" data-m="2">DOUBLE</button>
+      <button class="mbtn" data-m="3">TRIPLE</button>
+    </div>
+
+    <div class="tgt-grid" id="tgt-grid"></div>
+
+    <div class="act-row">
+      <button class="btn-undo" id="undo-btn">UNDO</button>
+      <button class="btn-next" id="next-btn">NEXT ››</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Shared win overlay -->
+<div id="win-overlay">
+  <div class="win-icon">🎯</div>
+  <div style="text-align:center">
+    <div class="win-lbl">WINNER</div>
+    <div class="win-name" id="win-name">---</div>
+  </div>
+  <div class="win-sub" id="win-sub"></div>
+  <div class="win-btns">
+    <button class="btn-start" id="win-new-btn" style="font-size:1rem;padding:0.8rem">NEW GAME</button>
+    <button class="btn-resume" onclick="document.getElementById('win-overlay').classList.remove('show')">VIEW BOARD</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script>
+'use strict';
+
+/* ── Init ── */
+initTheme();
+document.addEventListener('DOMContentLoaded', () => {
+  const tb = document.getElementById('theme-btn');
+  if (tb) tb.addEventListener('click', () => { toggleTheme(); SFX.hit(); });
+});
+
+const SAVE_KEY  = 'crick4';
+const ALL_NUMS  = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,'B'];
+
+let G    = {};
+let mult = 1;
+let selNums = new Set();
+let selN    = 2;
+
+/* ══════════════════════════════════════
+   NUMBER PICKER
+══════════════════════════════════════ */
+function buildNumGrid() {
+  const grid = document.getElementById('num-grid');
+  grid.innerHTML = '';
+  ALL_NUMS.forEach(n => {
+    const d = document.createElement('div');
+    d.className = `num-chip${n === 'B' ? ' bull' : ''}${selNums.has(n) ? ' on' : ''}`;
+    d.textContent = n === 'B' ? 'B' : n;
+    d.addEventListener('click', () => toggleNum(n));
+    grid.appendChild(d);
+  });
+  document.getElementById('sel-count').textContent = selNums.size;
+}
+
+function toggleNum(n) {
+  if (selNums.has(n)) {
+    selNums.delete(n);
+  } else {
+    if (selNums.size >= 7) { toast('MAX 7 NUMBERS'); return; }
+    selNums.add(n);
+  }
+  buildNumGrid();
+}
+
+document.getElementById('random-btn').addEventListener('click', () => {
+  selNums.clear();
+  const pool = [...ALL_NUMS];
+  while (selNums.size < 7) {
+    const i = Math.floor(Math.random() * pool.length);
+    selNums.add(pool.splice(i, 1)[0]);
+  }
+  buildNumGrid();
+});
+
+/* ══════════════════════════════════════
+   SETUP
+══════════════════════════════════════ */
+document.getElementById('player-chips').addEventListener('click', e => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  selN = +c.dataset.n;
+  document.querySelectorAll('#player-chips .chip').forEach(x =>
+    x.classList.toggle('on', x === c)
+  );
+  buildNameInputs('player-names', selN, 'PLAYER');
+});
+
+document.getElementById('pill-ct').querySelector('input').addEventListener('change', function() {
+  document.getElementById('pill-ct').classList.toggle('on', this.checked);
+});
+
+buildNameInputs('player-names', selN, 'PLAYER');
+buildNumGrid();
+
+try {
+  if (localStorage.getItem(SAVE_KEY)) document.getElementById('resume-btn').style.display = '';
+} catch(e) {}
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  if (selNums.size !== 7) { toast(`NEED 7 NUMBERS (${selNums.size}/7)`); return; }
+
+  G = freshState();
+  G.players    = getNames('player-names', 'P');
+  G.cutthroat  = document.getElementById('opt-ct').checked;
+  G.maxRounds  = +document.getElementById('max-rounds').value;
+
+  const nums  = [...selNums].filter(n => n !== 'B').sort((a, b) => a - b);
+  G.targets   = selNums.has('B') ? [...nums, 'B'] : nums;
+
+  G.players.forEach(p => {
+    G.hits[p]   = {};
+    G.points[p] = 0;
+    G.targets.forEach(t => G.hits[p][t] = 0);
+  });
+
+  launch();
+});
+
+document.getElementById('resume-btn').addEventListener('click', () => {
+  try { G = JSON.parse(localStorage.getItem(SAVE_KEY)); launch(); }
+  catch(e) { toast('LOAD ERROR'); }
+});
+
+function freshState() {
+  return {
+    players: [], targets: [], cutthroat: false, maxRounds: 20,
+    hits: {}, points: {},
+    currentPlayer: 0, currentThrows: [], round: 1, history: []
+  };
+}
+
+/* ══════════════════════════════════════
+   LAUNCH
+══════════════════════════════════════ */
+function launch() {
+  mult = 1;
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display  = 'flex';
+  renderAll();
+}
+
+/* ══════════════════════════════════════
+   RENDER
+══════════════════════════════════════ */
+function renderAll() {
+  renderBoard();
+  renderTargets();
+  renderSlots();
+  renderTurnName();
+  renderBadge();
+  document.querySelectorAll('#mult-row .mbtn').forEach(b =>
+    b.classList.toggle('active', +b.dataset.m === mult)
+  );
+}
+
+function renderBoard() {
+  const cp = G.players[G.currentPlayer];
+
+  let h = '<thead><tr>'
+    + '<th style="background:var(--panel);border-right:1px solid var(--border);'
+    + 'position:sticky;top:0;z-index:6;min-width:34px"></th>';
+  G.players.forEach(p => {
+    h += `<th class="${p === cp ? 'ah' : ''}">${p}</th>`;
+  });
+  h += '</tr></thead><tbody>';
+
+  G.targets.forEach(t => {
+    const bull      = t === 'B';
+    const allClosed = G.players.every(p => G.hits[p][t] >= 3);
+    h += `<tr><td class="tc${bull ? ' bull' : ''}${allClosed ? ' done' : ''}">${bull ? 'B' : t}</td>`;
+    G.players.forEach(p => {
+      const isActive = p === cp;
+      h += `<td class="mc${isActive ? ' ac' : ' other'}"${
+        isActive ? ` onclick="tapCell('${p}','${t}')"` : ''
+      }>${dotsHtml(G.hits[p][t])}</td>`;
+    });
+    h += '</tr>';
+  });
+
+  h += '</tbody><tfoot><tr>'
+    + '<td class="pts-lbl" style="background:var(--panel);border-right:1px solid var(--border)">PTS</td>';
+  G.players.forEach(p => {
+    h += `<td${p === cp
+      ? ' style="color:var(--led-red);text-shadow:0 0 8px var(--led-red-glow)"'
+      : ''}>${G.points[p] || 0}</td>`;
+  });
+  h += '</tr></tfoot>';
+
+  document.getElementById('score-table').innerHTML = h;
+}
+
+function dotsHtml(n) {
+  if (n === 0) return '<div class="dots"><span class="dot-empty">·</span></div>';
+  const filled = Math.min(n, 3), empty = 3 - filled;
+  let s = '';
+  for (let i = 0; i < filled; i++) s += '<span class="dot on"></span>';
+  for (let i = 0; i < empty;  i++) s += '<span class="dot off"></span>';
+  if (n > 3) s += `<span class="dot-plus">+${n - 3}</span>`;
+  return `<div class="dots">${s}</div>`;
+}
+
+function renderTargets() {
+  const g  = document.getElementById('tgt-grid');
+  g.innerHTML = '';
+  const cp = G.players[G.currentPlayer];
+
+  G.targets.forEach(t => {
+    const allClosed = G.players.every(p => G.hits[p][t] >= 3);
+    const cpClosed  = G.hits[cp][t] >= 3;
+    const bull      = t === 'B';
+    const b         = document.createElement('button');
+    b.dataset.target = t;
+    b.textContent    = bull ? 'BULL' : t;
+
+    if (allClosed) {
+      // Everyone closed — tappable to record throw, no effect on score
+      b.className = 'tbtn closed';
+      b.addEventListener('click', function() {
+        doThrow(this.dataset.target === 'B' ? 'B' : +this.dataset.target, mult, true);
+      });
+    } else if (cpClosed) {
+      // You closed it — amber scoring mode
+      b.className = 'tbtn scoring';
+      b.addEventListener('click', function() {
+        doThrow(this.dataset.target === 'B' ? 'B' : +this.dataset.target, mult);
+      });
+    } else {
+      b.className = bull ? 'tbtn bull' : 'tbtn';
+      b.addEventListener('click', function() {
+        doThrow(this.dataset.target === 'B' ? 'B' : +this.dataset.target, mult);
+      });
+    }
+
+    g.appendChild(b);
+  });
+
+  // Miss
+  const miss = document.createElement('button');
+  miss.className   = 'tbtn miss-btn';
+  miss.textContent = 'MISS';
+  miss.addEventListener('click', () => doThrow(null, 0));
+  g.appendChild(miss);
+}
+
+function renderSlots() {
+  for (let i = 0; i < 3; i++) {
+    const sl = document.getElementById(`ts${i}`);
+    const th = G.currentThrows[i];
+    if (th === undefined) {
+      sl.textContent = ''; sl.className = 'tslot';
+    } else if (th === null) {
+      sl.textContent = 'MISS'; sl.className = 'tslot miss';
+    } else {
+      const lbl = th.mult > 1 ? `${th.mult}×${th.target}` : String(th.target);
+      sl.textContent = lbl;
+      sl.className   = th.dead ? 'tslot dead' : th.scored ? 'tslot pts' : 'tslot hit';
+    }
+  }
+}
+
+function renderTurnName() {
+  document.getElementById('turn-name').textContent = G.players[G.currentPlayer];
+}
+
+function renderBadge() {
+  const mx = G.maxRounds, r = G.round;
+  document.getElementById('r-badge').textContent = mx > 0 ? `R${r}/${mx}` : `R${r}`;
+  document.getElementById('last-bar').classList.toggle('show', mx > 0 && r === mx);
+}
+
+/* ══════════════════════════════════════
+   THROW LOGIC
+══════════════════════════════════════ */
+function doThrow(target, m, dead) {
+  if (G.currentThrows.length >= 3) { toast('END TURN FIRST'); return; }
+
+  // Full snapshot for undo
+  G.history.push({
+    hits:          JSON.parse(JSON.stringify(G.hits)),
+    points:        JSON.parse(JSON.stringify(G.points)),
+    currentThrows: JSON.parse(JSON.stringify(G.currentThrows)),
+    currentPlayer: G.currentPlayer,
+    round:         G.round,
+  });
+
+  let scored = false;
+
+  if (target !== null && m > 0) {
+    const cp = G.players[G.currentPlayer];
+
+    if (dead) {
+      // Number fully closed by all — record for tracking, no game effect
+      SFX.dead();
+      G.currentThrows.push({ target, mult: m, scored: false, dead: true });
+    } else {
+      const prev        = G.hits[cp][target];
+      G.hits[cp][target] = prev + m;   // store uncapped so scoring math works
+
+      const closingHits = Math.max(0, Math.min(m, 3 - prev));
+      const bonusHits   = m - closingHits;
+
+      if (bonusHits > 0) {
+        const val = target === 'B' ? 25 : +target;
+        if (G.cutthroat) {
+          // Add points to opponents who haven't closed
+          G.players.forEach(p => {
+            if (p !== cp && G.hits[p][target] < 3) G.points[p] += bonusHits * val;
+          });
+        } else {
+          // Add points to self if any opponent hasn't closed
+          if (G.players.some(p => p !== cp && G.hits[p][target] < 3)) {
+            G.points[cp] += bonusHits * val;
+            scored = true;
+          }
+        }
+      }
+
+      // Sound
+      const justClosed = G.hits[cp][target] >= 3 && prev < 3;
+      if (scored || (G.cutthroat && bonusHits > 0)) {
+        SFX.score();
+      } else if (justClosed) {
+        m === 3 ? SFX.triple() : SFX.close();
+      } else {
+        if      (m === 3) SFX.triple();
+        else if (m === 2) SFX.double();
+        else              SFX.hit();
+      }
+
+      G.currentThrows.push({ target, mult: m, scored });
+    }
+  } else {
+    SFX.miss();
+    G.currentThrows.push(null);
+  }
+
+  mult = 1;
+  renderAll();
+  checkWin();
+}
+
+// Scoreboard cell tap (for current player's row)
+function tapCell(player, target) {
+  if (player !== G.players[G.currentPlayer]) { toast('NOT YOUR TURN'); return; }
+  const t = target === 'B' ? 'B' : +target;
+  doThrow(t, mult);
+}
+
+/* ══════════════════════════════════════
+   TURN / WIN
+══════════════════════════════════════ */
+function nextPlayer() {
+  G.currentThrows  = [];
+  G.currentPlayer  = (G.currentPlayer + 1) % G.players.length;
+  if (G.currentPlayer === 0) {
+    G.round++;
+    if (G.maxRounds > 0 && G.round > G.maxRounds) {
+      endByLimit(); return;
+    }
+  }
+  renderAll();
+  save();
+}
+
+function endByLimit() {
+  let winner = G.players[0], best = -Infinity;
+  G.players.forEach(p => {
+    const closed = G.targets.filter(t => G.hits[p][t] >= 3).length;
+    const pts    = G.cutthroat ? -G.points[p] : G.points[p];
+    const score  = closed * 10000 + pts;
+    if (score > best) { best = score; winner = p; }
+  });
+  const wClosed = G.targets.filter(t => G.hits[winner][t] >= 3).length;
+  showWin(
+    winner,
+    `${wClosed}/${G.targets.length} CLOSED  ${G.points[winner]} PTS  LIMIT`,
+    () => {
+      document.getElementById('win-overlay').classList.remove('show');
+      location.reload();
+    }
+  );
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+}
+
+function checkWin() {
+  const cp = G.players[G.currentPlayer];
+  if (!G.targets.every(t => G.hits[cp][t] >= 3)) return;
+
+  const myPts = G.points[cp];
+  const wins  = G.cutthroat
+    ? G.players.filter(p => p !== cp).every(p => G.points[p] >= myPts)
+    : G.players.filter(p => p !== cp).every(p => G.points[p] <= myPts);
+
+  if (wins) {
+    showWin(
+      cp,
+      `ALL CLOSED  ${myPts} PTS`,
+      () => {
+        document.getElementById('win-overlay').classList.remove('show');
+        location.reload();
+      }
+    );
+    try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+  } else if (!G.cutthroat) {
+    toast('CLOSED! KEEP SCORING');
+  }
+}
+
+/* ══════════════════════════════════════
+   CONTROLS
+══════════════════════════════════════ */
+document.getElementById('next-btn').addEventListener('click', () => {
+  SFX.next();
+  nextPlayer();
+});
+
+document.getElementById('undo-btn').addEventListener('click', () => {
+  if (!G.history.length) { toast('NOTHING TO UNDO'); return; }
+  const s        = G.history.pop();
+  G.hits          = s.hits;
+  G.points        = s.points;
+  G.currentThrows = s.currentThrows;
+  G.currentPlayer = s.currentPlayer;
+  G.round         = s.round;
+  mult = 1;
+  renderAll();
+  toast('UNDONE');
+});
+
+document.querySelectorAll('#mult-row .mbtn').forEach(b => {
+  b.addEventListener('click', () => {
+    mult = +b.dataset.m;
+    document.querySelectorAll('#mult-row .mbtn').forEach(x =>
+      x.classList.toggle('active', x === b)
+    );
+  });
+});
+
+document.getElementById('save-btn').addEventListener('click', () => { save(); toast('SAVED'); });
+document.getElementById('end-btn').addEventListener('click', () => {
+  if (confirm('End game and return to hub?')) location.href = '../index.html';
+});
+
+function save() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(G)); } catch(e) {}
+}
+</script>
+</body>
+</html>

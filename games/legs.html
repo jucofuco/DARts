@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LEGS · DARts</title>
+<link rel="stylesheet" href="../common.css">
+<script src="../sfx.js"></script>
+<script src="../utils.js"></script>
+<style>
+.lg-rows { display: flex; flex-direction: column; }
+.lg-row { display: flex; align-items: center; border-bottom: 1px solid var(--border); padding: 0.7rem 0.9rem; gap: 0.9rem; }
+.lg-row.active-row { background: rgba(255,170,0,0.05); }
+.lg-row.out-row { opacity: 0.35; }
+.lg-pname { flex: 1; font-size: 0.85rem; color: var(--text-dim); letter-spacing: 0.08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lg-row.active-row .lg-pname { color: var(--led-amber); text-shadow: 0 0 6px rgba(255,170,0,0.3); }
+.lg-legs { display: flex; gap: 5px; flex-shrink: 0; }
+.lg-leg { font-size: 1rem; filter: drop-shadow(0 0 4px var(--led-green-glow)); }
+.lg-leg.lost { opacity: 0.18; filter: none; }
+.lg-last { font-size: 0.62rem; color: var(--text-dim); min-width: 50px; text-align: right; }
+.lg-beat { text-align: center; padding: 0.2rem 0; }
+.lg-beat .lbl { font-size: 0.52rem; letter-spacing: 0.2em; color: var(--text-dim); }
+.lg-beat .val { font-size: 2.2rem; color: var(--led-red); text-shadow: 0 0 14px var(--led-red-glow); line-height: 1.1; }
+</style>
+</head>
+<body>
+
+<div id="setup-screen" class="setup-wrap">
+  <div class="setup-top">
+    <a class="back-btn" href="../index.html">◂ HUB</a>
+    <div class="setup-title">LEGS</div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ PLAYERS ]</span>
+    <div class="chip-row" id="player-chips">
+      <div class="chip" data-n="2">2</div>
+      <div class="chip on" data-n="3">3</div>
+      <div class="chip" data-n="4">4</div>
+      <div class="chip" data-n="5">5</div>
+      <div class="chip" data-n="6">6</div>
+      <div class="chip" data-n="7">7</div>
+      <div class="chip" data-n="8">8</div>
+    </div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ NAMES ]</span>
+    <div id="player-names"></div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ LEGS ]</span>
+    <div class="chip-row" id="legs-chips">
+      <div class="chip" data-l="3">3</div>
+      <div class="chip on" data-l="5">5</div>
+      <div class="chip" data-l="7">7</div>
+    </div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ RULES ]</span>
+    <div class="row2-hint">
+      Throw 3 darts, enter your total. You must BEAT the previous player's total — equal or less and you lose a leg!
+      First player of the game has nothing to beat. Lose all legs = out. Last standing wins.
+    </div>
+  </div>
+
+  <button class="btn-start" id="start-btn">[ START GAME ]</button>
+</div>
+
+<div id="game-screen" class="game-wrap" style="display:none">
+  <div class="top-bar">
+    <div style="display:flex;align-items:center">
+      <span class="game-logo">LEGS</span>
+      <span class="r-badge" id="r-badge">R1</span>
+    </div>
+    <div class="top-btns">
+      <button class="theme-btn" id="theme-btn">☀</button>
+      <button class="top-btn danger" id="end-btn">END</button>
+    </div>
+  </div>
+
+  <div class="game-scroll"><div class="lg-rows" id="board"></div></div>
+
+  <div class="input-panel">
+    <div class="turn-row">
+      <div>
+        <div class="turn-lbl">NOW THROWING</div>
+        <div class="turn-name" id="turn-name">---</div>
+      </div>
+      <div class="throw-slots">
+        <div class="tslot" id="ts0"></div>
+        <div class="tslot" id="ts1"></div>
+        <div class="tslot" id="ts2"></div>
+      </div>
+    </div>
+
+    <div class="lg-beat">
+      <div class="lbl">SCORE TO BEAT</div>
+      <div class="val" id="beat-val">—</div>
+    </div>
+
+    <div class="mult-row" id="mult-row">
+      <button class="mbtn active" data-m="1">SINGLE</button>
+      <button class="mbtn" data-m="2">DOUBLE</button>
+      <button class="mbtn" data-m="3">TRIPLE</button>
+    </div>
+
+    <div class="tgt-grid" id="tgt-grid"></div>
+
+    <div class="act-row">
+      <button class="btn-undo" id="undo-btn">UNDO</button>
+      <button class="btn-next" id="next-btn">NEXT ››</button>
+    </div>
+  </div>
+</div>
+
+<div id="win-overlay">
+  <div class="win-icon">🦵</div>
+  <div style="text-align:center">
+    <div class="win-lbl">LAST ONE STANDING</div>
+    <div class="win-name" id="win-name">---</div>
+  </div>
+  <div class="win-sub" id="win-sub"></div>
+  <div class="win-btns">
+    <button class="btn-start" id="win-new-btn" style="font-size:1rem;padding:0.8rem">NEW GAME</button>
+    <button class="btn-resume" onclick="document.getElementById('win-overlay').classList.remove('show')">VIEW BOARD</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+initTheme();
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('theme-btn').addEventListener('click', () => { toggleTheme(); SFX.hit(); });
+});
+
+let G = {}, mult = 1, selN = 3, selL = 5;
+
+document.getElementById('player-chips').addEventListener('click', e => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  selN = +c.dataset.n;
+  document.querySelectorAll('#player-chips .chip').forEach(x => x.classList.toggle('on', x === c));
+  buildNameInputs('player-names', selN, 'PLAYER');
+});
+
+document.getElementById('legs-chips').addEventListener('click', e => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  selL = +c.dataset.l;
+  document.querySelectorAll('#legs-chips .chip').forEach(x => x.classList.toggle('on', x === c));
+});
+
+buildNameInputs('player-names', selN, 'PLAYER');
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  G = {
+    players: getNames('player-names', 'P'),
+    maxLegs: selL,
+    legs: {}, lastScore: {},
+    toBeat: null,           // score the current player must beat (null for very first turn)
+    currentPlayer: 0, currentThrows: [], round: 1, undoStack: []
+  };
+  G.players.forEach(p => { G.legs[p] = selL; G.lastScore[p] = null; });
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'flex';
+  buildGrid();
+  renderAll();
+});
+
+function isAlive(p) { return G.legs[p] > 0; }
+function turnTotal() {
+  return G.currentThrows.reduce((s, th) => s + (th ? th.val * th.m : 0), 0);
+}
+
+function buildGrid() {
+  const g = document.getElementById('tgt-grid');
+  g.innerHTML = '';
+  for (let n = 1; n <= 20; n++) {
+    const b = document.createElement('button');
+    b.className = 'tbtn x01';
+    b.textContent = n;
+    b.addEventListener('click', () => doThrow(n));
+    g.appendChild(b);
+  }
+  const bull = document.createElement('button');
+  bull.className = 'tbtn x01 bull';
+  bull.textContent = 'BULL';
+  bull.addEventListener('click', () => doThrow(25));
+  g.appendChild(bull);
+  const miss = document.createElement('button');
+  miss.className = 'tbtn miss-btn';
+  miss.textContent = 'MISS';
+  miss.addEventListener('click', () => doThrow(0));
+  g.appendChild(miss);
+}
+
+function renderAll() {
+  const cp = G.players[G.currentPlayer];
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  G.players.forEach(p => {
+    const row = document.createElement('div');
+    row.className = `lg-row${p === cp ? ' active-row' : ''}${!isAlive(p) ? ' out-row' : ''}`;
+    let legsHtml = '';
+    for (let i = 0; i < G.maxLegs; i++) legsHtml += `<span class="lg-leg${i >= G.legs[p] ? ' lost' : ''}">🦵</span>`;
+    row.innerHTML = `
+      <div class="lg-pname">${p}${!isAlive(p) ? ' · OUT' : ''}</div>
+      <div class="lg-legs">${legsHtml}</div>
+      <div class="lg-last">${G.lastScore[p] !== null ? G.lastScore[p] : ''}</div>`;
+    board.appendChild(row);
+  });
+
+  document.getElementById('turn-name').textContent = cp;
+  document.getElementById('beat-val').textContent = G.toBeat === null ? '—' : `> ${G.toBeat}`;
+  document.getElementById('r-badge').textContent = `R${G.round}`;
+  document.querySelectorAll('#mult-row .mbtn').forEach(b => b.classList.toggle('active', +b.dataset.m === mult));
+
+  for (let i = 0; i < 3; i++) {
+    const sl = document.getElementById(`ts${i}`);
+    const th = G.currentThrows[i];
+    if (th === undefined) { sl.textContent = ''; sl.className = 'tslot'; }
+    else if (th === null) { sl.textContent = 'MISS'; sl.className = 'tslot miss'; }
+    else {
+      sl.textContent = th.m > 1 ? `${th.m}×${th.val === 25 ? 'B' : th.val}` : (th.val === 25 ? 'BULL' : String(th.val));
+      sl.className = 'tslot hit';
+    }
+  }
+}
+
+function doThrow(val) {
+  if (G.currentThrows.length >= 3) { toast('END TURN FIRST'); return; }
+  G.undoStack.push({
+    legs: JSON.parse(JSON.stringify(G.legs)),
+    lastScore: JSON.parse(JSON.stringify(G.lastScore)),
+    toBeat: G.toBeat,
+    currentThrows: JSON.parse(JSON.stringify(G.currentThrows)),
+    currentPlayer: G.currentPlayer, round: G.round
+  });
+
+  if (val === 0) {
+    SFX.miss();
+    G.currentThrows.push(null);
+  } else {
+    if (mult === 3) SFX.triple(); else if (mult === 2) SFX.double(); else SFX.hit();
+    G.currentThrows.push({ val, m: mult });
+  }
+  mult = 1;
+  renderAll();
+}
+
+document.getElementById('next-btn').addEventListener('click', () => {
+  const cp = G.players[G.currentPlayer];
+  const total = turnTotal();
+  G.lastScore[cp] = total;
+
+  // Did they beat the target?
+  if (G.toBeat !== null && total <= G.toBeat) {
+    G.legs[cp]--;
+    SFX.bust();
+    toast(`${cp} LOSES A LEG! (${total} ≤ ${G.toBeat})`);
+    if (!isAlive(cp)) toast(`${cp} IS OUT!`);
+  } else {
+    SFX.next();
+  }
+
+  // The new score to beat is this player's total (only if they're still in and scored)
+  G.toBeat = total;
+
+  // Win check
+  const alive = G.players.filter(isAlive);
+  if (alive.length === 1) {
+    SFX.checkout();
+    renderAll();
+    setTimeout(() => showWin(alive[0], `${G.legs[alive[0]]} LEGS LEFT`, () => location.reload()), 400);
+    return;
+  }
+
+  // Advance to next alive player
+  G.currentThrows = [];
+  do {
+    G.currentPlayer = (G.currentPlayer + 1) % G.players.length;
+    if (G.currentPlayer === 0) G.round++;
+  } while (!isAlive(G.players[G.currentPlayer]));
+
+  mult = 1;
+  renderAll();
+});
+
+document.getElementById('undo-btn').addEventListener('click', () => {
+  if (!G.undoStack.length) { toast('NOTHING TO UNDO'); return; }
+  const s = G.undoStack.pop();
+  G.legs = s.legs; G.lastScore = s.lastScore; G.toBeat = s.toBeat;
+  G.currentThrows = s.currentThrows; G.currentPlayer = s.currentPlayer; G.round = s.round;
+  mult = 1; renderAll(); toast('UNDONE');
+});
+
+document.querySelectorAll('#mult-row .mbtn').forEach(b => {
+  b.addEventListener('click', () => { mult = +b.dataset.m; document.querySelectorAll('#mult-row .mbtn').forEach(x => x.classList.toggle('active', x === b)); });
+});
+
+document.getElementById('end-btn').addEventListener('click', () => { if (confirm('End game and return to hub?')) location.href = '../index.html'; });
+</script>
+</body>
+</html>

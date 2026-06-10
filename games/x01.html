@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>X01 · DARts</title>
+<link rel="stylesheet" href="../common.css">
+
+<script src="../sfx.js"></script>
+<script src="../utils.js"></script>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     SETUP SCREEN
+══════════════════════════════════════ -->
+<div id="setup-screen" class="setup-wrap">
+
+  <div class="setup-top">
+    <a class="back-btn" href="../index.html">◂ HUB</a>
+    <div class="setup-title amber" id="setup-title">501</div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ PLAYERS ]</span>
+    <div class="chip-row" id="player-chips">
+      <div class="chip on amber" data-n="2">2</div>
+      <div class="chip" data-n="3">3</div>
+      <div class="chip" data-n="4">4</div>
+      <div class="chip" data-n="5">5</div>
+      <div class="chip" data-n="6">6</div>
+      <div class="chip" data-n="7">7</div>
+      <div class="chip" data-n="8">8</div>
+    </div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ NAMES ]</span>
+    <div id="player-names"></div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ STARTING SCORE ]</span>
+    <div class="chip-row" id="score-chips">
+      <div class="chip" data-s="101">101</div>
+      <div class="chip" data-s="201">201</div>
+      <div class="chip" data-s="301">301</div>
+      <div class="chip" data-s="401">401</div>
+      <div class="chip" data-s="501">501</div>
+      <div class="chip" data-s="601">601</div>
+      <div class="chip" data-s="701">701</div>
+      <div class="chip" data-s="801">801</div>
+      <div class="chip" data-s="901">901</div>
+      <div class="chip" data-s="1001">1001</div>
+    </div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ ROUND LIMIT ]</span>
+    <div class="row2">
+      <input class="led-input-sm" type="number" id="max-rounds" value="0" min="0" max="99">
+      <span class="row2-hint">max rounds per player<br>0 = unlimited</span>
+    </div>
+  </div>
+
+  <button class="btn-start amber" id="start-btn">[ START GAME ]</button>
+  <button class="btn-resume" id="resume-btn" style="display:none">[ RESUME SAVED ]</button>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     GAME SCREEN
+══════════════════════════════════════ -->
+<div id="game-screen" class="game-wrap" style="display:none">
+
+  <div class="top-bar amber-bar">
+    <div style="display:flex;align-items:center">
+      <span class="game-logo amber" id="game-logo">501</span>
+      <span class="r-badge" id="r-badge">R1</span>
+    </div>
+    <div class="top-btns">
+      <button class="theme-btn" id="theme-btn">☀</button>
+      <button class="top-btn" id="save-btn">SAVE</button>
+      <button class="top-btn danger" id="end-btn">END</button>
+    </div>
+  </div>
+
+  <div class="last-bar" id="last-bar">*** FINAL ROUND ***</div>
+
+  <div class="game-scroll">
+    <div class="x01-scores" id="score-board"></div>
+  </div>
+
+  <div class="input-panel amber-panel">
+    <div class="turn-row">
+      <div>
+        <div class="turn-lbl">NOW THROWING</div>
+        <div class="turn-name" id="turn-name">---</div>
+      </div>
+      <div class="throw-slots">
+        <div class="tslot" id="ts0"></div>
+        <div class="tslot" id="ts1"></div>
+        <div class="tslot" id="ts2"></div>
+      </div>
+    </div>
+
+    <div class="mult-row" id="mult-row">
+      <button class="mbtn active" data-m="1">SINGLE</button>
+      <button class="mbtn" data-m="2">DOUBLE</button>
+      <button class="mbtn" data-m="3">TRIPLE</button>
+    </div>
+
+    <div class="tgt-grid" id="tgt-grid"></div>
+
+    <div class="act-row">
+      <button class="btn-undo" id="undo-btn">UNDO</button>
+      <button class="btn-next amber" id="next-btn">NEXT ››</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Shared win overlay -->
+<div id="win-overlay">
+  <div class="win-icon">🎯</div>
+  <div style="text-align:center">
+    <div class="win-lbl">WINNER</div>
+    <div class="win-name" id="win-name">---</div>
+  </div>
+  <div class="win-sub" id="win-sub"></div>
+  <div class="win-btns">
+    <button class="btn-start amber" id="win-new-btn" style="font-size:1rem;padding:0.8rem">NEW GAME</button>
+    <button class="btn-resume" onclick="document.getElementById('win-overlay').classList.remove('show')">VIEW BOARD</button>
+  </div>
+</div>
+
+<div class="bust-flash" id="bust-flash"></div>
+<div id="toast"></div>
+<script>
+'use strict';
+
+/* ── Init ── */
+initTheme();
+document.addEventListener('DOMContentLoaded', () => {
+  const tb = document.getElementById('theme-btn');
+  if (tb) tb.addEventListener('click', () => { toggleTheme(); SFX.hit(); });
+});
+
+const SAVE_KEY = 'x01save';
+let G = {};
+let mult = 1;
+
+/* ── Read ?start= param from hub link ── */
+const urlStart = parseInt(new URLSearchParams(location.search).get('start')) || 501;
+
+/* ── Setup: player count ── */
+let selN = 2;
+document.getElementById('player-chips').addEventListener('click', e => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  selN = +c.dataset.n;
+  document.querySelectorAll('#player-chips .chip').forEach(x => {
+    x.classList.toggle('on', x === c);
+    x.classList.toggle('amber', x === c);
+  });
+  buildNameInputs('player-names', selN, 'PLAYER');
+});
+
+/* ── Setup: starting score ── */
+let selScore = urlStart;
+
+function applyScoreChip(score) {
+  selScore = score;
+  document.getElementById('setup-title').textContent = score;
+  document.querySelectorAll('#score-chips .chip').forEach(c => {
+    const match = +c.dataset.s === score;
+    c.classList.toggle('on', match);
+    c.classList.toggle('amber', match);
+  });
+}
+
+document.getElementById('score-chips').addEventListener('click', e => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  applyScoreChip(+c.dataset.s);
+});
+
+/* ── Boot setup ── */
+applyScoreChip(urlStart);
+buildNameInputs('player-names', selN, 'PLAYER');
+try {
+  if (localStorage.getItem(SAVE_KEY)) document.getElementById('resume-btn').style.display = '';
+} catch(e) {}
+
+/* ── Start / Resume ── */
+document.getElementById('start-btn').addEventListener('click', () => {
+  G = freshState();
+  G.players    = getNames('player-names', 'P');
+  G.startScore  = selScore;
+  G.maxRounds   = +document.getElementById('max-rounds').value;
+  G.players.forEach(p => { G.scores[p] = selScore; G.history[p] = []; });
+  launch();
+});
+
+document.getElementById('resume-btn').addEventListener('click', () => {
+  try { G = JSON.parse(localStorage.getItem(SAVE_KEY)); launch(); }
+  catch(e) { toast('LOAD ERROR'); }
+});
+
+function freshState() {
+  return {
+    players: [], startScore: 501, maxRounds: 0,
+    scores: {}, history: {},
+    currentPlayer: 0, currentThrows: [],
+    round: 1, undoStack: []
+  };
+}
+
+/* ── Launch game ── */
+function launch() {
+  mult = 1;
+  document.getElementById('game-logo').textContent = G.startScore;
+  buildTargetGrid();
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display  = 'flex';
+  renderAll();
+}
+
+/* ── Target grid (built once, stays static) ── */
+function buildTargetGrid() {
+  const g = document.getElementById('tgt-grid');
+  g.innerHTML = '';
+  for (let n = 1; n <= 20; n++) {
+    const b = document.createElement('button');
+    b.className   = 'tbtn x01';
+    b.textContent = n;
+    b.dataset.val = n;
+    b.addEventListener('click', () => doThrow(n, mult));
+    g.appendChild(b);
+  }
+  // Bull
+  const bull = document.createElement('button');
+  bull.className   = 'tbtn x01 bull';
+  bull.textContent = 'BULL';
+  bull.addEventListener('click', () => doThrow(25, mult));
+  g.appendChild(bull);
+  // Miss
+  const miss = document.createElement('button');
+  miss.className   = 'tbtn miss-btn';
+  miss.textContent = 'MISS';
+  miss.addEventListener('click', () => doThrow(0, 0));
+  g.appendChild(miss);
+}
+
+/* ── Render ── */
+function renderAll() {
+  renderBoard();
+  renderSlots();
+  document.getElementById('turn-name').textContent = G.players[G.currentPlayer];
+  const mx = G.maxRounds;
+  document.getElementById('r-badge').textContent = mx > 0 ? `R${G.round}/${mx}` : `R${G.round}`;
+  const lb = document.getElementById('last-bar');
+  if (lb) lb.classList.toggle('show', mx > 0 && G.round === mx);
+  document.querySelectorAll('#mult-row .mbtn').forEach(b =>
+    b.classList.toggle('active', +b.dataset.m === mult)
+  );
+}
+
+function renderBoard() {
+  const cp    = G.players[G.currentPlayer];
+  const board = document.getElementById('score-board');
+  board.innerHTML = '';
+
+  G.players.forEach(p => {
+    const rem      = G.scores[p];
+    const isActive = p === cp;
+    const hist     = (G.history[p] || []).slice(-3);
+
+    const histHtml = hist.map(r =>
+      r.bust
+        ? `<span class="bust-hist">BUST</span>`
+        : `<span>${r.total > 0 ? '-' + r.total : '—'}</span>`
+    ).join('<br>');
+
+    const row = document.createElement('div');
+    row.className = `x01-player-row${isActive ? ' active-row' : ''}`;
+    row.innerHTML = `
+      <div class="x01-left">
+        <div class="x01-pname">${p}</div>
+        <div class="x01-remaining${rem <= 50 ? ' danger' : ''}">${rem}</div>
+      </div>
+      <div class="x01-right">
+        <div class="x01-round-hist">${histHtml}</div>
+      </div>`;
+    board.appendChild(row);
+  });
+}
+
+function renderSlots() {
+  for (let i = 0; i < 3; i++) {
+    const sl = document.getElementById(`ts${i}`);
+    const th = G.currentThrows[i];
+    if (th === undefined) {
+      sl.textContent = ''; sl.className = 'tslot';
+    } else if (th === null) {
+      sl.textContent = 'MISS'; sl.className = 'tslot miss';
+    } else if (th.bust) {
+      sl.textContent = 'BUST'; sl.className = 'tslot bust';
+    } else {
+      const lbl = th.mult > 1
+        ? `${th.mult}×${th.val === 25 ? 'B' : th.val}`
+        : (th.val === 25 ? 'BULL' : String(th.val));
+      sl.textContent = lbl;
+      sl.className   = 'tslot hit';
+    }
+  }
+}
+
+/* ── Throw ── */
+function doThrow(val, m) {
+  if (G.currentThrows.length >= 3) { toast('END TURN FIRST'); return; }
+
+  // Snapshot for undo
+  G.undoStack.push({
+    scores:        JSON.parse(JSON.stringify(G.scores)),
+    history:       JSON.parse(JSON.stringify(G.history)),
+    currentThrows: JSON.parse(JSON.stringify(G.currentThrows)),
+    currentPlayer: G.currentPlayer,
+    round:         G.round,
+  });
+
+  const cp = G.players[G.currentPlayer];
+
+  // Miss
+  if (val === 0 || m === 0) {
+    SFX.miss();
+    G.currentThrows.push(null);
+    mult = 1;
+    renderAll();
+    return;
+  }
+
+  const score    = val * m;
+  const cur      = G.scores[cp];
+  const newScore = cur - score;
+
+  if (newScore < 0) {
+    // Bust — score stays, turn ends automatically
+    SFX.bust();
+    bustFlash();
+    G.currentThrows.push({ val, mult: m, bust: true });
+    mult = 1;
+    renderAll();
+    setTimeout(() => nextPlayer(true), 900);
+    return;
+  }
+
+  if (newScore === 0) {
+    // Checkout!
+    SFX.checkout();
+    G.scores[cp] = 0;
+    G.currentThrows.push({ val, mult: m, bust: false });
+    mult = 1;
+    renderAll();
+    if (!G.history[cp]) G.history[cp] = [];
+    G.history[cp].push({ total: score, bust: false });
+    try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+    setTimeout(() =>
+      showWin(cp, `CHECKOUT  ${cur} → 0`, () => {
+        document.getElementById('win-overlay').classList.remove('show');
+        location.href = `../games/x01.html?start=${G.startScore}`;
+      })
+    , 300);
+    return;
+  }
+
+  // Normal hit
+  if      (m === 3) SFX.triple();
+  else if (m === 2) SFX.double();
+  else              SFX.hit();
+
+  G.scores[cp] = newScore;
+  G.currentThrows.push({ val, mult: m, bust: false });
+  mult = 1;
+  renderAll();
+}
+
+/* ── Next player ── */
+function nextPlayer(fromBust) {
+  const cp = G.players[G.currentPlayer];
+  if (!G.history[cp]) G.history[cp] = [];
+
+  if (fromBust) {
+    G.history[cp].push({ total: 0, bust: true });
+  } else {
+    const total = G.currentThrows.reduce((s, th) => {
+      if (!th || th.bust) return s;
+      return s + th.val * th.mult;
+    }, 0);
+    G.history[cp].push({ total, bust: false });
+  }
+
+  SFX.next();
+  G.currentThrows  = [];
+  G.currentPlayer  = (G.currentPlayer + 1) % G.players.length;
+  if (G.currentPlayer === 0) {
+    G.round++;
+    if (G.maxRounds > 0 && G.round > G.maxRounds) { endByLimit(); return; }
+  }
+  mult = 1;
+  renderAll();
+  save();
+}
+
+function endByLimit() {
+  // Find leader: most score thrown (startScore - remaining), ties go to lower remaining
+  let winner = G.players[0];
+  let best = -Infinity;
+  G.players.forEach(p => {
+    const scored = G.startScore - G.scores[p];
+    if (scored > best) { best = scored; winner = p; }
+  });
+  showWin(
+    winner,
+    `ROUND LIMIT  ${G.scores[winner]} LEFT`,
+    () => {
+      document.getElementById('win-overlay').classList.remove('show');
+      location.href = `../games/x01.html?start=${G.startScore}`;
+    }
+  );
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+}
+
+/* ── Controls ── */
+document.getElementById('next-btn').addEventListener('click', () => nextPlayer(false));
+
+document.getElementById('undo-btn').addEventListener('click', () => {
+  if (!G.undoStack.length) { toast('NOTHING TO UNDO'); return; }
+  const s        = G.undoStack.pop();
+  G.scores        = s.scores;
+  G.history       = s.history;
+  G.currentThrows = s.currentThrows;
+  G.currentPlayer = s.currentPlayer;
+  G.round         = s.round;
+  mult = 1;
+  renderAll();
+  toast('UNDONE');
+});
+
+document.querySelectorAll('#mult-row .mbtn').forEach(b => {
+  b.addEventListener('click', () => {
+    mult = +b.dataset.m;
+    document.querySelectorAll('#mult-row .mbtn').forEach(x =>
+      x.classList.toggle('active', x === b)
+    );
+  });
+});
+
+document.getElementById('save-btn').addEventListener('click', () => { save(); toast('SAVED'); });
+document.getElementById('end-btn').addEventListener('click', () => {
+  if (confirm('End game and return to hub?')) location.href = '../index.html';
+});
+
+function save() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(G)); } catch(e) {}
+}
+</script>
+</body>
+</html>

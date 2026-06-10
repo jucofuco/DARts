@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BOB'S 27 · DARts</title>
+<link rel="stylesheet" href="../common.css">
+<script src="../sfx.js"></script>
+<script src="../utils.js"></script>
+<style>
+.b27-rows { display: flex; flex-direction: column; }
+.b27-row { display: flex; align-items: center; border-bottom: 1px solid var(--border); padding: 0.7rem 0.9rem; gap: 1rem; }
+.b27-row.active-row { background: rgba(255,170,0,0.05); }
+.b27-row.out-row { opacity: 0.35; }
+.b27-pname { flex: 1; font-size: 0.85rem; color: var(--text-dim); letter-spacing: 0.08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.b27-row.active-row .b27-pname { color: var(--led-amber); text-shadow: 0 0 6px rgba(255,170,0,0.3); }
+.b27-score { font-size: 1.8rem; color: var(--text-bright); min-width: 80px; text-align: right; }
+.b27-row.active-row .b27-score { color: var(--led-amber); text-shadow: 0 0 10px rgba(255,170,0,0.3); }
+.b27-score.danger-s { color: var(--led-red); text-shadow: 0 0 10px var(--led-red-glow); }
+.big-target { text-align: center; padding: 0.2rem 0; }
+.big-target .lbl { font-size: 0.52rem; letter-spacing: 0.2em; color: var(--text-dim); }
+.big-target .val { font-size: 2.4rem; color: var(--led-green); text-shadow: 0 0 16px var(--led-green-glow); line-height: 1.1; }
+.b27-btn-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35rem; }
+.b27-hint { font-size: 0.6rem; color: var(--text-dim); text-align: center; letter-spacing: 0.06em; }
+</style>
+</head>
+<body>
+
+<div id="setup-screen" class="setup-wrap">
+  <div class="setup-top">
+    <a class="back-btn" href="../index.html">◂ HUB</a>
+    <div class="setup-title">BOB'S 27</div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ PLAYERS ]</span>
+    <div class="chip-row" id="player-chips">
+      <div class="chip on" data-n="1">1</div>
+      <div class="chip" data-n="2">2</div>
+      <div class="chip" data-n="3">3</div>
+      <div class="chip" data-n="4">4</div>
+      <div class="chip" data-n="5">5</div>
+      <div class="chip" data-n="6">6</div>
+      <div class="chip" data-n="7">7</div>
+      <div class="chip" data-n="8">8</div>
+    </div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ NAMES ]</span>
+    <div id="player-names"></div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ RULES ]</span>
+    <div class="row2-hint">
+      Start with 27 points. Round 1 = Double 1, round 2 = Double 2 … up to Double 20, then Double Bull.
+      Each hit adds the double's value. NO hits in a round = the double's value is SUBTRACTED.
+      Drop below 1 point = eliminated. Survive with the most points to win!
+    </div>
+  </div>
+
+  <button class="btn-start" id="start-btn">[ START GAME ]</button>
+</div>
+
+<div id="game-screen" class="game-wrap" style="display:none">
+  <div class="top-bar">
+    <div style="display:flex;align-items:center">
+      <span class="game-logo">BOB'S 27</span>
+      <span class="r-badge" id="r-badge">D1</span>
+    </div>
+    <div class="top-btns">
+      <button class="theme-btn" id="theme-btn">☀</button>
+      <button class="top-btn danger" id="end-btn">END</button>
+    </div>
+  </div>
+
+  <div class="game-scroll"><div class="b27-rows" id="board"></div></div>
+
+  <div class="input-panel">
+    <div class="turn-row">
+      <div>
+        <div class="turn-lbl">NOW THROWING</div>
+        <div class="turn-name" id="turn-name">---</div>
+      </div>
+      <div class="throw-slots" style="visibility:hidden">
+        <div class="tslot"></div>
+      </div>
+    </div>
+
+    <div class="big-target">
+      <div class="lbl">TARGET — HOW MANY DARTS HIT?</div>
+      <div class="val" id="cur-target">D1</div>
+    </div>
+
+    <div class="b27-hint" id="hint">Hit = +2 · Miss all three = −2</div>
+
+    <div class="b27-btn-row">
+      <button class="tbtn miss-btn" id="h0-btn">0 HITS</button>
+      <button class="tbtn" id="h1-btn">1</button>
+      <button class="tbtn" id="h2-btn">2</button>
+      <button class="tbtn bull" id="h3-btn">3</button>
+    </div>
+
+    <div class="act-row">
+      <button class="btn-undo" id="undo-btn">UNDO</button>
+      <button class="btn-next" id="next-btn" style="visibility:hidden">·</button>
+    </div>
+  </div>
+</div>
+
+<div id="win-overlay">
+  <div class="win-icon">2️⃣7️⃣</div>
+  <div style="text-align:center">
+    <div class="win-lbl">WINNER</div>
+    <div class="win-name" id="win-name">---</div>
+  </div>
+  <div class="win-sub" id="win-sub"></div>
+  <div class="win-btns">
+    <button class="btn-start" id="win-new-btn" style="font-size:1rem;padding:0.8rem">NEW GAME</button>
+    <button class="btn-resume" onclick="document.getElementById('win-overlay').classList.remove('show')">VIEW BOARD</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+initTheme();
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('theme-btn').addEventListener('click', () => { toggleTheme(); SFX.hit(); });
+});
+
+let G = {}, selN = 1;
+
+document.getElementById('player-chips').addEventListener('click', e => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  selN = +c.dataset.n;
+  document.querySelectorAll('#player-chips .chip').forEach(x => x.classList.toggle('on', x === c));
+  buildNameInputs('player-names', selN, 'PLAYER');
+});
+
+buildNameInputs('player-names', selN, 'PLAYER');
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  G = {
+    players: getNames('player-names', 'P'),
+    scores: {}, eliminated: {},
+    currentPlayer: 0, round: 1, undoStack: []   // round = which double (1..21, 21 = bull)
+  };
+  G.players.forEach(p => { G.scores[p] = 27; G.eliminated[p] = false; });
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'flex';
+  renderAll();
+});
+
+function targetLabel() { return G.round > 20 ? 'D-BULL' : `D${G.round}`; }
+function targetValue() { return G.round > 20 ? 50 : G.round * 2; }
+function aliveList() { return G.players.filter(p => !G.eliminated[p]); }
+
+function renderAll() {
+  const cp = G.players[G.currentPlayer];
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  G.players.forEach(p => {
+    const row = document.createElement('div');
+    row.className = `b27-row${p === cp ? ' active-row' : ''}${G.eliminated[p] ? ' out-row' : ''}`;
+    row.innerHTML = `
+      <div class="b27-pname">${p}${G.eliminated[p] ? ' · OUT' : ''}</div>
+      <div class="b27-score${!G.eliminated[p] && G.scores[p] <= targetValue() ? ' danger-s' : ''}">${G.scores[p]}</div>`;
+    board.appendChild(row);
+  });
+
+  const v = targetValue();
+  document.getElementById('turn-name').textContent = cp;
+  document.getElementById('cur-target').textContent = targetLabel();
+  document.getElementById('r-badge').textContent = targetLabel();
+  document.getElementById('hint').textContent = `Each hit = +${v} · Zero hits = −${v}`;
+}
+
+// hits = 0..3 darts that hit the target double; records the whole turn at once
+function recordTurn(hits) {
+  G.undoStack.push({
+    scores: JSON.parse(JSON.stringify(G.scores)),
+    eliminated: JSON.parse(JSON.stringify(G.eliminated)),
+    currentPlayer: G.currentPlayer, round: G.round
+  });
+
+  const cp = G.players[G.currentPlayer];
+  const v = targetValue();
+
+  if (hits === 0) {
+    G.scores[cp] -= v;
+    SFX.bust();
+    if (G.scores[cp] < 1) {
+      G.eliminated[cp] = true;
+      toast(`${cp} ELIMINATED!`);
+    }
+  } else {
+    G.scores[cp] += v * hits;
+    if (hits === 3) SFX.triple(); else if (hits === 2) SFX.double(); else SFX.hit();
+  }
+
+  advance();
+}
+
+function advance() {
+  const alive = aliveList();
+
+  // Everyone eliminated → last one eliminated... edge: no alive players
+  if (alive.length === 0) {
+    // Winner = highest score among all
+    endGame();
+    return;
+  }
+  if (alive.length === 1 && G.players.length > 1) {
+    SFX.checkout();
+    renderAll();
+    setTimeout(() => showWin(alive[0], `LAST SURVIVOR  ·  ${G.scores[alive[0]]} PTS`, () => location.reload()), 300);
+    return;
+  }
+
+  // Move to next alive player
+  let moved = false;
+  let idx = G.currentPlayer;
+  for (let i = 0; i < G.players.length; i++) {
+    idx = (idx + 1) % G.players.length;
+    if (idx === 0) {
+      // wrapped — next round
+      G.round++;
+      if (G.round > 21) { endGame(); return; }
+    }
+    if (!G.eliminated[G.players[idx]]) { moved = true; break; }
+  }
+  if (!moved) { endGame(); return; }
+
+  G.currentPlayer = idx;
+  SFX.next();
+  renderAll();
+}
+
+function endGame() {
+  let winner = G.players[0], best = -Infinity;
+  G.players.forEach(p => {
+    if (!G.eliminated[p] && G.scores[p] > best) { best = G.scores[p]; winner = p; }
+  });
+  if (best === -Infinity) {
+    // everyone eliminated — highest score anyway
+    G.players.forEach(p => { if (G.scores[p] > best) { best = G.scores[p]; winner = p; } });
+  }
+  showWin(winner, `${G.scores[winner]} PTS`, () => location.reload());
+}
+
+document.getElementById('h0-btn').addEventListener('click', () => recordTurn(0));
+document.getElementById('h1-btn').addEventListener('click', () => recordTurn(1));
+document.getElementById('h2-btn').addEventListener('click', () => recordTurn(2));
+document.getElementById('h3-btn').addEventListener('click', () => recordTurn(3));
+
+document.getElementById('undo-btn').addEventListener('click', () => {
+  if (!G.undoStack.length) { toast('NOTHING TO UNDO'); return; }
+  const s = G.undoStack.pop();
+  G.scores = s.scores; G.eliminated = s.eliminated; G.currentPlayer = s.currentPlayer; G.round = s.round;
+  renderAll(); toast('UNDONE');
+});
+
+document.getElementById('end-btn').addEventListener('click', () => { if (confirm('End game and return to hub?')) location.href = '../index.html'; });
+</script>
+</body>
+</html>

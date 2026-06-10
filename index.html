@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DARts</title>
+<link rel="stylesheet" href="common.css">
+<style>
+/* ── Hub-specific layout ── */
+.hub-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 0 1rem 3rem;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.hub-hero {
+  text-align: center;
+  padding: 2.4rem 0 0.4rem;
+}
+.hub-hero h1 {
+  font-size: 2.8rem;
+  font-weight: 400;
+  color: var(--led-red);
+  text-shadow: 0 0 20px var(--led-red-glow), 0 0 40px var(--led-red-glow);
+  letter-spacing: 0.15em;
+  line-height: 1;
+}
+.hub-hero .sub {
+  color: var(--text-dim);
+  font-size: 0.65rem;
+  letter-spacing: 0.35em;
+  margin-top: 0.4rem;
+}
+
+.hub-section { margin-bottom: 1.6rem; }
+.hub-section-lbl {
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+  border-left: 2px solid var(--led-red);
+  padding-left: 0.5rem;
+}
+
+/* ── Game cards ── */
+.game-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 1rem 1.1rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.12s;
+  position: relative;
+  overflow: hidden;
+}
+.game-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--led-red);
+  box-shadow: 0 0 8px var(--led-red-glow);
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.game-card:active { transform: scale(0.98); }
+.game-card:active::before { opacity: 1; }
+.game-card.amber::before { background: var(--led-amber); box-shadow: 0 0 8px rgba(255,170,0,0.4); }
+
+.card-icon { font-size: 1.8rem; flex-shrink: 0; }
+.card-body { flex: 1; min-width: 0; }
+.card-title {
+  font-size: 1.05rem;
+  color: var(--led-red);
+  text-shadow: 0 0 8px var(--led-red-glow);
+  letter-spacing: 0.08em;
+}
+.game-card.amber .card-title { color: var(--led-amber); text-shadow: 0 0 8px rgba(255,170,0,0.35); }
+.card-desc { font-size: 0.62rem; color: var(--text-dim); letter-spacing: 0.06em; margin-top: 0.25rem; line-height: 1.4; }
+.card-arrow { color: var(--text-dim); font-size: 1rem; flex-shrink: 0; }
+</style>
+
+<script src="sfx.js"></script>
+<script src="utils.js"></script>
+</head>
+<body>
+
+<div class="hub-wrap">
+
+  <div class="hub-hero">
+    <h1>🎯 DARts</h1>
+    <div class="sub">POSLI MI 5 EURO</div>
+  </div>
+
+  <!-- Theme toggle -->
+  <div class="theme-bar">
+    <span class="theme-lbl">DARK</span>
+    <div class="theme-toggle" id="theme-toggle"></div>
+    <span class="theme-lbl">BRIGHT</span>
+  </div>
+
+  <!-- X01 -->
+  <div class="hub-section">
+    <div class="hub-section-lbl">[ X01 GAMES ]</div>
+
+    <a class="game-card amber" href="games/x01.html?start=301">
+      <div class="card-icon">🎯</div>
+      <div class="card-body">
+        <div class="card-title">301</div>
+        <div class="card-desc">Fast game · Straight in / out · First to zero wins</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </a>
+
+    <a class="game-card amber" href="games/x01.html?start=501">
+      <div class="card-icon">🎯</div>
+      <div class="card-body">
+        <div class="card-title">501</div>
+        <div class="card-desc">Classic game · Straight in / out · First to zero wins</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </a>
+
+    <a class="game-card amber" href="games/x01.html?start=701">
+      <div class="card-icon">🎯</div>
+      <div class="card-body">
+        <div class="card-title">701</div>
+        <div class="card-desc">Long game · Straight in / out · First to zero wins</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </a>
+  </div>
+
+  <!-- Cricket -->
+  <div class="hub-section">
+    <div class="hub-section-lbl">[ CRICKET ]</div>
+
+    <a class="game-card" href="games/cricket.html">
+      <div class="card-icon">🏏</div>
+      <div class="card-body">
+        <div class="card-title">KRIKET BEZ BULZAJZ</div>
+        <div class="card-desc">Pick 7 numbers · Close them · Score overflow · Cut-throat mode</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </a>
+  </div>
+
+  <!-- Target games -->
+  <div class="hub-section">
+    <div class="hub-section-lbl">[ TARGET GAMES ]</div>
+
+    <a class="game-card" href="games/clock.html">
+      <div class="card-icon">🕐</div>
+      <div class="card-body">
+        <div class="card-title">AROUND THE CLOCK</div>
+        <div class="card-desc">Hit 1 to 20 in order · Optional bull finish · First around wins</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </a>
+
+    <a class="game-card" href="games/shanghai.html">
+      <div class="card-icon">🀄</div>
+      <div class="card-body">
+        <div class="card-title">SHANGHAI</div>
+        <div class="card-desc">Round N = number N only · Single+Double+Triple = instant win</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </a>
+
+    <a class="game-card" href="games/halveit.html">
+      <div class="card-icon">✂️</div>
+      <div class="card-body">
+        <div class="card-title">HALVE IT</div>
+        <div class="card-desc">Hit the target or your score gets cut in half · Brutal</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </a>
+
+    <a class="game-card" href="games/bobs27.html">
+      <div class="card-icon">2️⃣7️⃣</div>
+      <div class="card-body">
+        <div class="card-title">BOB'S 27</div>
+        <div class="card-desc">Doubles practice · D1 to D-Bull · Miss = lose points · Below 1 = out</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </a>
+  </div>
+
+  <!-- Party games -->
+  <div class="hub-section">
+    <div class="hub-section-lbl">[ PARTY GAMES ]</div>
+
+    <a class="game-card" href="games/killer.html">
+      <div class="card-icon">💀</div>
+      <div class="card-body">
+        <div class="card-title">KILLER</div>
+        <div class="card-desc">Get your number · Become a killer · Take everyone's lives</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </a>
+
+    <a class="game-card" href="games/legs.html">
+      <div class="card-icon">🦵</div>
+      <div class="card-body">
+        <div class="card-title">LEGS</div>
+        <div class="card-desc">Beat the previous score or lose a leg · Last standing wins</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </a>
+
+    <a class="game-card" href="games/countup.html">
+      <div class="card-icon">📈</div>
+      <div class="card-body">
+        <div class="card-title">COUNT UP</div>
+        <div class="card-desc">Pure scoring · Highest total wins · Great for warm-up</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </a>
+  </div>
+
+</div>
+<script>
+  initTheme();
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    toggleTheme();
+    SFX.hit();
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CLOCK · DARts</title>
+<link rel="stylesheet" href="../common.css">
+<script src="../sfx.js"></script>
+<script src="../utils.js"></script>
+<style>
+.clock-rows { display: flex; flex-direction: column; }
+.clock-row { display: flex; align-items: center; border-bottom: 1px solid var(--border); padding: 0.7rem 0.9rem; gap: 1rem; }
+.clock-row.active-row { background: rgba(255,170,0,0.05); }
+.clock-pname { flex: 1; font-size: 0.85rem; color: var(--text-dim); letter-spacing: 0.08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.clock-row.active-row .clock-pname { color: var(--led-amber); text-shadow: 0 0 6px rgba(255,170,0,0.3); }
+.clock-target { font-size: 2rem; color: var(--led-green); text-shadow: 0 0 12px var(--led-green-glow); min-width: 70px; text-align: center; }
+.clock-target.done-t { color: var(--led-amber); font-size: 1.1rem; }
+.clock-prog { font-size: 0.6rem; color: var(--text-dim); letter-spacing: 0.1em; min-width: 56px; text-align: right; }
+.big-target { text-align: center; padding: 0.2rem 0; }
+.big-target .lbl { font-size: 0.52rem; letter-spacing: 0.2em; color: var(--text-dim); }
+.big-target .val { font-size: 2.6rem; color: var(--led-green); text-shadow: 0 0 16px var(--led-green-glow); line-height: 1.1; }
+.hitmiss-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+</style>
+</head>
+<body>
+
+<div id="setup-screen" class="setup-wrap">
+  <div class="setup-top">
+    <a class="back-btn" href="../index.html">◂ HUB</a>
+    <div class="setup-title">AROUND THE CLOCK</div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ PLAYERS ]</span>
+    <div class="chip-row" id="player-chips">
+      <div class="chip on" data-n="1">1</div>
+      <div class="chip" data-n="2">2</div>
+      <div class="chip" data-n="3">3</div>
+      <div class="chip" data-n="4">4</div>
+      <div class="chip" data-n="5">5</div>
+      <div class="chip" data-n="6">6</div>
+      <div class="chip" data-n="7">7</div>
+      <div class="chip" data-n="8">8</div>
+    </div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ NAMES ]</span>
+    <div id="player-names"></div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ OPTIONS ]</span>
+    <div class="pill-row">
+      <label class="pill" id="pill-bull"><input type="checkbox" id="opt-bull"> FINISH ON BULL</label>
+      <label class="pill" id="pill-skip"><input type="checkbox" id="opt-skip"> DOUBLES/TRIPLES SKIP AHEAD</label>
+    </div>
+  </div>
+
+  <button class="btn-start" id="start-btn">[ START GAME ]</button>
+</div>
+
+<div id="game-screen" class="game-wrap" style="display:none">
+  <div class="top-bar">
+    <div style="display:flex;align-items:center">
+      <span class="game-logo">CLOCK</span>
+      <span class="r-badge" id="r-badge">R1</span>
+    </div>
+    <div class="top-btns">
+      <button class="theme-btn" id="theme-btn">☀</button>
+      <button class="top-btn danger" id="end-btn">END</button>
+    </div>
+  </div>
+
+  <div class="game-scroll"><div class="clock-rows" id="board"></div></div>
+
+  <div class="input-panel">
+    <div class="turn-row">
+      <div>
+        <div class="turn-lbl">NOW THROWING</div>
+        <div class="turn-name" id="turn-name">---</div>
+      </div>
+      <div class="throw-slots">
+        <div class="tslot" id="ts0"></div>
+        <div class="tslot" id="ts1"></div>
+        <div class="tslot" id="ts2"></div>
+      </div>
+    </div>
+
+    <div class="big-target">
+      <div class="lbl">CURRENT TARGET</div>
+      <div class="val" id="cur-target">1</div>
+    </div>
+
+    <div class="mult-row" id="mult-row" style="display:none">
+      <button class="mbtn active" data-m="1">SINGLE</button>
+      <button class="mbtn" data-m="2">DOUBLE</button>
+      <button class="mbtn" data-m="3">TRIPLE</button>
+    </div>
+
+    <div class="hitmiss-row">
+      <button class="tbtn bull" id="hit-btn" style="font-size:1rem">HIT</button>
+      <button class="tbtn miss-btn" id="miss-btn" style="font-size:1rem">MISS</button>
+    </div>
+
+    <div class="act-row">
+      <button class="btn-undo" id="undo-btn">UNDO</button>
+      <button class="btn-next" id="next-btn">NEXT ››</button>
+    </div>
+  </div>
+</div>
+
+<div id="win-overlay">
+  <div class="win-icon">🕐</div>
+  <div style="text-align:center">
+    <div class="win-lbl">WINNER</div>
+    <div class="win-name" id="win-name">---</div>
+  </div>
+  <div class="win-sub" id="win-sub"></div>
+  <div class="win-btns">
+    <button class="btn-start" id="win-new-btn" style="font-size:1rem;padding:0.8rem">NEW GAME</button>
+    <button class="btn-resume" onclick="document.getElementById('win-overlay').classList.remove('show')">VIEW BOARD</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+initTheme();
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('theme-btn').addEventListener('click', () => { toggleTheme(); SFX.hit(); });
+});
+
+let G = {}, mult = 1, selN = 1;
+
+document.getElementById('player-chips').addEventListener('click', e => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  selN = +c.dataset.n;
+  document.querySelectorAll('#player-chips .chip').forEach(x => x.classList.toggle('on', x === c));
+  buildNameInputs('player-names', selN, 'PLAYER');
+});
+
+document.querySelectorAll('.pill').forEach(p => {
+  p.querySelector('input').addEventListener('change', function() { p.classList.toggle('on', this.checked); });
+});
+
+buildNameInputs('player-names', selN, 'PLAYER');
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  G = {
+    players: getNames('player-names', 'P'),
+    withBull: document.getElementById('opt-bull').checked,
+    skipMode: document.getElementById('opt-skip').checked,
+    pos: {},            // current target per player (1..20, 21 = bull)
+    currentPlayer: 0, currentThrows: [], round: 1, undoStack: []
+  };
+  G.players.forEach(p => G.pos[p] = 1);
+  document.getElementById('mult-row').style.display = G.skipMode ? 'grid' : 'none';
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'flex';
+  renderAll();
+});
+
+function maxPos() { return G.withBull ? 21 : 20; }
+function posLabel(n) { return n > 20 ? 'BULL' : String(n); }
+function isDone(p) { return G.pos[p] > maxPos(); }
+
+function renderAll() {
+  const cp = G.players[G.currentPlayer];
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  G.players.forEach(p => {
+    const row = document.createElement('div');
+    row.className = `clock-row${p === cp ? ' active-row' : ''}`;
+    const done = isDone(p);
+    row.innerHTML = `
+      <div class="clock-pname">${p}</div>
+      <div class="clock-target${done ? ' done-t' : ''}">${done ? 'DONE ✓' : posLabel(G.pos[p])}</div>
+      <div class="clock-prog">${Math.min(G.pos[p] - 1, maxPos())}/${maxPos()}</div>`;
+    board.appendChild(row);
+  });
+
+  document.getElementById('turn-name').textContent = cp;
+  document.getElementById('cur-target').textContent = posLabel(G.pos[cp]);
+  document.getElementById('r-badge').textContent = `R${G.round}`;
+  document.querySelectorAll('#mult-row .mbtn').forEach(b => b.classList.toggle('active', +b.dataset.m === mult));
+
+  for (let i = 0; i < 3; i++) {
+    const sl = document.getElementById(`ts${i}`);
+    const th = G.currentThrows[i];
+    if (th === undefined) { sl.textContent = ''; sl.className = 'tslot'; }
+    else if (th === null) { sl.textContent = 'MISS'; sl.className = 'tslot miss'; }
+    else { sl.textContent = th; sl.className = 'tslot hit'; }
+  }
+}
+
+function doThrow(hit) {
+  if (G.currentThrows.length >= 3) { toast('END TURN FIRST'); return; }
+  G.undoStack.push({ pos: JSON.parse(JSON.stringify(G.pos)), currentThrows: [...G.currentThrows], currentPlayer: G.currentPlayer, round: G.round });
+
+  const cp = G.players[G.currentPlayer];
+  if (!hit) {
+    SFX.miss();
+    G.currentThrows.push(null);
+  } else {
+    const step = G.skipMode ? mult : 1;
+    const label = posLabel(G.pos[cp]) + (step > 1 ? `+${step}` : '');
+    G.pos[cp] = Math.min(G.pos[cp] + step, maxPos() + 1);
+    if (step === 3) SFX.triple(); else if (step === 2) SFX.double(); else SFX.hit();
+    G.currentThrows.push(label);
+    if (isDone(cp)) {
+      SFX.checkout();
+      renderAll();
+      setTimeout(() => showWin(cp, `FINISHED IN ROUND ${G.round}`, () => location.reload()), 300);
+      return;
+    }
+  }
+  mult = 1;
+  renderAll();
+}
+
+document.getElementById('hit-btn').addEventListener('click', () => doThrow(true));
+document.getElementById('miss-btn').addEventListener('click', () => doThrow(false));
+
+document.getElementById('next-btn').addEventListener('click', () => {
+  SFX.next();
+  G.currentThrows = [];
+  G.currentPlayer = (G.currentPlayer + 1) % G.players.length;
+  if (G.currentPlayer === 0) G.round++;
+  mult = 1;
+  renderAll();
+});
+
+document.getElementById('undo-btn').addEventListener('click', () => {
+  if (!G.undoStack.length) { toast('NOTHING TO UNDO'); return; }
+  const s = G.undoStack.pop();
+  G.pos = s.pos; G.currentThrows = s.currentThrows; G.currentPlayer = s.currentPlayer; G.round = s.round;
+  mult = 1; renderAll(); toast('UNDONE');
+});
+
+document.querySelectorAll('#mult-row .mbtn').forEach(b => {
+  b.addEventListener('click', () => { mult = +b.dataset.m; document.querySelectorAll('#mult-row .mbtn').forEach(x => x.classList.toggle('active', x === b)); });
+});
+
+document.getElementById('end-btn').addEventListener('click', () => { if (confirm('End game and return to hub?')) location.href = '../index.html'; });
+</script>
+</body>
+</html>

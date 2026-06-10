@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SHANGHAI · DARts</title>
+<link rel="stylesheet" href="../common.css">
+<script src="../sfx.js"></script>
+<script src="../utils.js"></script>
+<style>
+.sh-rows { display: flex; flex-direction: column; }
+.sh-row { display: flex; align-items: center; border-bottom: 1px solid var(--border); padding: 0.7rem 0.9rem; gap: 1rem; }
+.sh-row.active-row { background: rgba(255,170,0,0.05); }
+.sh-pname { flex: 1; font-size: 0.85rem; color: var(--text-dim); letter-spacing: 0.08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sh-row.active-row .sh-pname { color: var(--led-amber); text-shadow: 0 0 6px rgba(255,170,0,0.3); }
+.sh-score { font-size: 1.8rem; color: var(--text-bright); min-width: 80px; text-align: right; }
+.sh-row.active-row .sh-score { color: var(--led-amber); text-shadow: 0 0 10px rgba(255,170,0,0.3); }
+.big-target { text-align: center; padding: 0.2rem 0; }
+.big-target .lbl { font-size: 0.52rem; letter-spacing: 0.2em; color: var(--text-dim); }
+.big-target .val { font-size: 2.4rem; color: var(--led-green); text-shadow: 0 0 16px var(--led-green-glow); line-height: 1.1; }
+.sh-btn-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35rem; }
+</style>
+</head>
+<body>
+
+<div id="setup-screen" class="setup-wrap">
+  <div class="setup-top">
+    <a class="back-btn" href="../index.html">◂ HUB</a>
+    <div class="setup-title">SHANGHAI</div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ PLAYERS ]</span>
+    <div class="chip-row" id="player-chips">
+      <div class="chip on" data-n="2">2</div>
+      <div class="chip" data-n="3">3</div>
+      <div class="chip" data-n="4">4</div>
+      <div class="chip" data-n="5">5</div>
+      <div class="chip" data-n="6">6</div>
+      <div class="chip" data-n="7">7</div>
+      <div class="chip" data-n="8">8</div>
+    </div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ NAMES ]</span>
+    <div id="player-names"></div>
+  </div>
+
+  <div class="s-section">
+    <span class="s-label">[ ROUNDS ]</span>
+    <div class="chip-row" id="rounds-chips">
+      <div class="chip on" data-r="7" style="width:auto;padding:0 1rem">1–7</div>
+      <div class="chip" data-r="9" style="width:auto;padding:0 1rem">1–9</div>
+      <div class="chip" data-r="20" style="width:auto;padding:0 1rem">1–20</div>
+    </div>
+    <div class="row2-hint" style="margin-top:0.4rem">Round N: only number N scores. Hit single + double + triple in one turn = SHANGHAI, instant win!</div>
+  </div>
+
+  <button class="btn-start" id="start-btn">[ START GAME ]</button>
+</div>
+
+<div id="game-screen" class="game-wrap" style="display:none">
+  <div class="top-bar">
+    <div style="display:flex;align-items:center">
+      <span class="game-logo">SHANGHAI</span>
+      <span class="r-badge" id="r-badge">R1</span>
+    </div>
+    <div class="top-btns">
+      <button class="theme-btn" id="theme-btn">☀</button>
+      <button class="top-btn danger" id="end-btn">END</button>
+    </div>
+  </div>
+
+  <div class="game-scroll"><div class="sh-rows" id="board"></div></div>
+
+  <div class="input-panel">
+    <div class="turn-row">
+      <div>
+        <div class="turn-lbl">NOW THROWING</div>
+        <div class="turn-name" id="turn-name">---</div>
+      </div>
+      <div class="throw-slots">
+        <div class="tslot" id="ts0"></div>
+        <div class="tslot" id="ts1"></div>
+        <div class="tslot" id="ts2"></div>
+      </div>
+    </div>
+
+    <div class="big-target">
+      <div class="lbl">THIS ROUND ONLY</div>
+      <div class="val" id="cur-target">1</div>
+    </div>
+
+    <div class="sh-btn-row">
+      <button class="tbtn" id="s-btn" style="font-size:0.85rem">SINGLE</button>
+      <button class="tbtn" id="d-btn" style="font-size:0.85rem">DOUBLE</button>
+      <button class="tbtn" id="t-btn" style="font-size:0.85rem">TRIPLE</button>
+      <button class="tbtn miss-btn" id="miss-btn">MISS</button>
+    </div>
+
+    <div class="act-row">
+      <button class="btn-undo" id="undo-btn">UNDO</button>
+      <button class="btn-next" id="next-btn">NEXT ››</button>
+    </div>
+  </div>
+</div>
+
+<div id="win-overlay">
+  <div class="win-icon">🀄</div>
+  <div style="text-align:center">
+    <div class="win-lbl">WINNER</div>
+    <div class="win-name" id="win-name">---</div>
+  </div>
+  <div class="win-sub" id="win-sub"></div>
+  <div class="win-btns">
+    <button class="btn-start" id="win-new-btn" style="font-size:1rem;padding:0.8rem">NEW GAME</button>
+    <button class="btn-resume" onclick="document.getElementById('win-overlay').classList.remove('show')">VIEW BOARD</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+initTheme();
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('theme-btn').addEventListener('click', () => { toggleTheme(); SFX.hit(); });
+});
+
+let G = {}, selN = 2, selR = 7;
+
+document.getElementById('player-chips').addEventListener('click', e => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  selN = +c.dataset.n;
+  document.querySelectorAll('#player-chips .chip').forEach(x => x.classList.toggle('on', x === c));
+  buildNameInputs('player-names', selN, 'PLAYER');
+});
+
+document.getElementById('rounds-chips').addEventListener('click', e => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  selR = +c.dataset.r;
+  document.querySelectorAll('#rounds-chips .chip').forEach(x => x.classList.toggle('on', x === c));
+});
+
+buildNameInputs('player-names', selN, 'PLAYER');
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  G = {
+    players: getNames('player-names', 'P'),
+    maxRounds: selR,
+    scores: {},
+    currentPlayer: 0, currentThrows: [], round: 1, undoStack: []
+  };
+  G.players.forEach(p => G.scores[p] = 0);
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'flex';
+  renderAll();
+});
+
+function renderAll() {
+  const cp = G.players[G.currentPlayer];
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  // Sort by score for display? No — keep order, just show scores
+  G.players.forEach(p => {
+    const row = document.createElement('div');
+    row.className = `sh-row${p === cp ? ' active-row' : ''}`;
+    row.innerHTML = `<div class="sh-pname">${p}</div><div class="sh-score">${G.scores[p]}</div>`;
+    board.appendChild(row);
+  });
+  document.getElementById('turn-name').textContent = cp;
+  document.getElementById('cur-target').textContent = G.round;
+  document.getElementById('r-badge').textContent = `R${G.round}/${G.maxRounds}`;
+
+  for (let i = 0; i < 3; i++) {
+    const sl = document.getElementById(`ts${i}`);
+    const th = G.currentThrows[i];
+    if (th === undefined) { sl.textContent = ''; sl.className = 'tslot'; }
+    else if (th === null) { sl.textContent = 'MISS'; sl.className = 'tslot miss'; }
+    else { sl.textContent = th.m > 1 ? `${th.m}×${G.round}` : String(G.round); sl.className = 'tslot hit'; }
+  }
+}
+
+function doThrow(m) {
+  if (G.currentThrows.length >= 3) { toast('END TURN FIRST'); return; }
+  G.undoStack.push({ scores: JSON.parse(JSON.stringify(G.scores)), currentThrows: JSON.parse(JSON.stringify(G.currentThrows)), currentPlayer: G.currentPlayer, round: G.round });
+
+  const cp = G.players[G.currentPlayer];
+  if (m === 0) {
+    SFX.miss();
+    G.currentThrows.push(null);
+  } else {
+    G.scores[cp] += G.round * m;
+    if (m === 3) SFX.triple(); else if (m === 2) SFX.double(); else SFX.hit();
+    G.currentThrows.push({ m });
+    // Shanghai check: single + double + triple in this turn
+    const mults = G.currentThrows.filter(t => t).map(t => t.m);
+    if (mults.includes(1) && mults.includes(2) && mults.includes(3)) {
+      SFX.checkout();
+      renderAll();
+      setTimeout(() => showWin(cp, `SHANGHAI! ON ${G.round}s  ·  ${G.scores[cp]} PTS`, () => location.reload()), 300);
+      return;
+    }
+  }
+  renderAll();
+}
+
+document.getElementById('s-btn').addEventListener('click', () => doThrow(1));
+document.getElementById('d-btn').addEventListener('click', () => doThrow(2));
+document.getElementById('t-btn').addEventListener('click', () => doThrow(3));
+document.getElementById('miss-btn').addEventListener('click', () => doThrow(0));
+
+document.getElementById('next-btn').addEventListener('click', () => {
+  SFX.next();
+  G.currentThrows = [];
+  G.currentPlayer = (G.currentPlayer + 1) % G.players.length;
+  if (G.currentPlayer === 0) {
+    G.round++;
+    if (G.round > G.maxRounds) { endGame(); return; }
+  }
+  renderAll();
+});
+
+function endGame() {
+  let winner = G.players[0], best = -Infinity;
+  G.players.forEach(p => { if (G.scores[p] > best) { best = G.scores[p]; winner = p; } });
+  showWin(winner, `${G.scores[winner]} PTS AFTER ${G.maxRounds} ROUNDS`, () => location.reload());
+}
+
+document.getElementById('undo-btn').addEventListener('click', () => {
+  if (!G.undoStack.length) { toast('NOTHING TO UNDO'); return; }
+  const s = G.undoStack.pop();
+  G.scores = s.scores; G.currentThrows = s.currentThrows; G.currentPlayer = s.currentPlayer; G.round = s.round;
+  renderAll(); toast('UNDONE');
+});
+
+document.getElementById('end-btn').addEventListener('click', () => { if (confirm('End game and return to hub?')) location.href = '../index.html'; });
+</script>
+</body>
+</html>
