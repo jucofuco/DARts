@@ -24,6 +24,7 @@
   <div class="s-section">
     <span class="s-label">[ PLAYERS ]</span>
     <div class="chip-row" id="player-chips">
+      <div class="chip" data-n="1">1</div>
       <div class="chip on" data-n="2">2</div>
       <div class="chip" data-n="3">3</div>
       <div class="chip" data-n="4">4</div>
@@ -43,7 +44,10 @@
     <span class="s-label">[ SELECT 7 NUMBERS ]</span>
     <div class="num-count">Selected: <span id="sel-count">0</span> / 7</div>
     <div class="num-grid" id="num-grid"></div>
-    <button class="btn-random" id="random-btn">[ RANDOM 7 ]</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.35rem;margin-top:0.3rem">
+      <button class="btn-random" id="standard-btn">[ STANDARD 15-20+B ]</button>
+      <button class="btn-random" id="random-btn">[ RANDOM 7 ]</button>
+    </div>
   </div>
 
   <div class="s-section">
@@ -186,6 +190,12 @@ document.getElementById('random-btn').addEventListener('click', () => {
     const i = Math.floor(Math.random() * pool.length);
     selNums.add(pool.splice(i, 1)[0]);
   }
+  buildNumGrid();
+});
+
+document.getElementById('standard-btn').addEventListener('click', () => {
+  selNums.clear();
+  [15, 16, 17, 18, 19, 20, 'B'].forEach(n => selNums.add(n));
   buildNumGrid();
 });
 
@@ -411,6 +421,9 @@ function doThrow(target, m, dead) {
 
   if (target !== null && m > 0) {
     const cp = G.players[G.currentPlayer];
+
+    // Bull can only be single (25) or double (50) — no triple bull in real darts
+    if (target === 'B' && m > 2) { toast('NO TRIPLE BULL'); return; }
 
     if (dead) {
       // Number fully closed by all — record for tracking, no game effect
