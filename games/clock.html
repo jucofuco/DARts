@@ -12,8 +12,9 @@
 .clock-row { flex: 1 0 auto; display: flex; align-items: center; border-bottom: 1px solid var(--border); padding: 0.7rem 0.9rem; gap: 1rem; }
 .clock-row.active-row { background: rgba(255,170,0,0.05); }
 .clock-pname { flex: 1; font-size: 0.85rem; color: var(--text-dim); letter-spacing: 0.08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.clock-row.active-row .clock-pname { color: var(--led-amber); text-shadow: 0 0 6px rgba(255,170,0,0.3); }
-.clock-target { font-size: 2rem; color: var(--led-green); text-shadow: 0 0 12px var(--led-green-glow); min-width: 70px; text-align: center; }
+.clock-row.active-row .clock-pname { color: var(--led-amber); }
+.clock-target { font-size: 1.6rem; color: var(--led-green); min-width: 70px; text-align: center; }
+.clock-row.active-row .clock-target { font-size: 3rem; text-shadow: 0 0 14px var(--led-green-glow); }
 .clock-target.done-t { color: var(--led-amber); font-size: 1.1rem; }
 .clock-prog { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 0.1em; min-width: 56px; text-align: right; }
 .big-target { text-align: center; padding: 0.2rem 0; }

@@ -13,7 +13,7 @@
 .sh-row.active-row { background: rgba(255,170,0,0.05); }
 .sh-pname { flex: 1; font-size: 0.85rem; color: var(--text-dim); letter-spacing: 0.08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sh-row.active-row .sh-pname { color: var(--led-amber); }
-.sh-score { font-size: 1.8rem; color: var(--text-bright); min-width: 80px; text-align: right; }
+.sh-score { font-size: 1.5rem; color: var(--text-bright); min-width: 80px; text-align: right; }
 .sh-row.active-row .sh-score { color: var(--led-amber); }
 .big-target { text-align: center; padding: 0.2rem 0; }
 .big-target .lbl { font-size: 0.75rem; letter-spacing: 0.12em; color: var(--text-dim); }
@@ -174,7 +174,7 @@ function renderAll() {
   G.players.forEach(p => {
     const row = document.createElement('div');
     row.className = `sh-row${p === cp ? ' active-row' : ''}`;
-    row.innerHTML = `<div class="sh-pname">${p}</div><div class="sh-score">${G.scores[p]}</div>`;
+    row.innerHTML = `<div class="sh-pname">${p}</div><div class="sh-score lit-score">${G.scores[p]}</div>`;
     board.appendChild(row);
   });
   document.getElementById('turn-name').textContent = cp;

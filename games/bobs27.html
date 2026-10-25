@@ -14,7 +14,7 @@
 .b27-row.out-row { opacity: 0.35; }
 .b27-pname { flex: 1; font-size: 0.85rem; color: var(--text-dim); letter-spacing: 0.08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .b27-row.active-row .b27-pname { color: var(--led-amber); }
-.b27-score { font-size: 1.8rem; color: var(--text-bright); min-width: 80px; text-align: right; }
+.b27-score { font-size: 1.5rem; color: var(--text-bright); min-width: 80px; text-align: right; }
 .b27-row.active-row .b27-score { color: var(--led-amber); }
 .b27-score.danger-s { color: var(--led-red); }
 .big-target { text-align: center; padding: 0.2rem 0; }
@@ -174,7 +174,7 @@ function renderAll() {
     row.className = `b27-row${p === cp ? ' active-row' : ''}${G.eliminated[p] ? ' out-row' : ''}`;
     row.innerHTML = `
       <div class="b27-pname">${p}${G.eliminated[p] ? ' · OUT' : ''}</div>
-      <div class="b27-score${!G.eliminated[p] && G.scores[p] <= targetValue() ? ' danger-s' : ''}">${G.scores[p]}</div>`;
+      <div class="b27-score lit-score${!G.eliminated[p] && G.scores[p] <= targetValue() ? ' danger-s' : ''}">${G.scores[p]}</div>`;
     board.appendChild(row);
   });
 
