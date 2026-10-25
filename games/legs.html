@@ -15,9 +15,9 @@
 .lg-pname { flex: 1; font-size: 0.85rem; color: var(--text-dim); letter-spacing: 0.08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lg-row.active-row .lg-pname { color: var(--led-amber); }
 .lg-legs { display: flex; gap: 5px; flex-shrink: 0; }
-.lg-leg { font-size: 1rem; filter: drop-shadow(0 0 4px var(--led-green-glow)); }
-.lg-leg.lost { opacity: 0.18; filter: none; }
-.lg-last { font-size: 0.62rem; color: var(--text-dim); min-width: 50px; text-align: right; }
+.lg-leg { width: 10px; height: 20px; border-radius: 2px; background: var(--led-green); box-shadow: 0 0 6px var(--led-green-glow); }
+.lg-leg.lost { background: transparent; border: 1.5px solid var(--border); box-shadow: none; }
+.lg-last { font-size: 0.75rem; color: var(--text-dim); min-width: 50px; text-align: right; }
 .lg-beat { text-align: center; padding: 0.2rem 0; }
 .lg-beat .lbl { font-size: 0.75rem; letter-spacing: 0.12em; color: var(--text-dim); }
 .lg-beat .val { font-size: 2.2rem; color: var(--led-red); line-height: 1.1; }
@@ -117,7 +117,6 @@
 </div>
 
 <div id="win-overlay">
-  <div class="win-icon">🦵</div>
   <div style="text-align:center">
     <div class="win-lbl">LAST ONE STANDING</div>
     <div class="win-name" id="win-name">---</div>
@@ -212,7 +211,7 @@ function renderAll() {
     const row = document.createElement('div');
     row.className = `lg-row${p === cp ? ' active-row' : ''}${!isAlive(p) ? ' out-row' : ''}`;
     let legsHtml = '';
-    for (let i = 0; i < G.maxLegs; i++) legsHtml += `<span class="lg-leg${i >= G.legs[p] ? ' lost' : ''}">🦵</span>`;
+    for (let i = 0; i < G.maxLegs; i++) legsHtml += `<span class="lg-leg${i >= G.legs[p] ? ' lost' : ''}"></span>`;
     row.innerHTML = `
       <div class="lg-pname">${p}${!isAlive(p) ? ' · OUT' : ''}</div>
       <div class="lg-legs">${legsHtml}</div>
