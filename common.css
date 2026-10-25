@@ -480,7 +480,7 @@ body {
 .btn-next.amber:active { box-shadow: 0 0 16px rgba(255,170,0,0.3); }
 
 /* ═══ CRICKET SCOREBOARD ═══ */
-.score-table { width: 100%; border-collapse: collapse; }
+.score-table { width: 100%; height: 100%; border-collapse: collapse; }
 .score-table thead th {
   background: var(--panel);
   font-family: var(--seg);
@@ -514,8 +514,8 @@ body {
 .dot-empty { color: var(--border); font-size: 1.1rem; line-height: 40px; }
 
 /* ═══ X01 SCOREBOARD ═══ */
-.x01-scores { width: 100%; display: flex; flex-direction: column; }
-.x01-player-row { display: flex; align-items: stretch; border-bottom: 1px solid var(--border); min-height: 72px; }
+.x01-scores { width: 100%; min-height: 100%; display: flex; flex-direction: column; }
+.x01-player-row { flex: 1 0 auto; display: flex; align-items: stretch; border-bottom: 1px solid var(--border); min-height: 72px; }
 .x01-player-row.active-row { background: rgba(255,170,0,0.04); }
 .x01-left { flex: 1; padding: 0.6rem 0.8rem; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
 .x01-pname { font-size: 0.72rem; color: var(--text-dim); letter-spacing: 0.1em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

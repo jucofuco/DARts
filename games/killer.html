@@ -8,8 +8,8 @@
 <script src="../sfx.js"></script>
 <script src="../utils.js"></script>
 <style>
-.kl-rows { display: flex; flex-direction: column; }
-.kl-row { display: flex; align-items: center; border-bottom: 1px solid var(--border); padding: 0.65rem 0.9rem; gap: 0.8rem; }
+.kl-rows { min-height: 100%; display: flex; flex-direction: column; }
+.kl-row { flex: 1 0 auto; display: flex; align-items: center; border-bottom: 1px solid var(--border); padding: 0.65rem 0.9rem; gap: 0.8rem; }
 .kl-row.active-row { background: rgba(255,170,0,0.05); }
 .kl-row.dead-row { opacity: 0.35; }
 .kl-num {

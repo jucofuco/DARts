@@ -8,8 +8,8 @@
 <script src="../sfx.js"></script>
 <script src="../utils.js"></script>
 <style>
-.lg-rows { display: flex; flex-direction: column; }
-.lg-row { display: flex; align-items: center; border-bottom: 1px solid var(--border); padding: 0.7rem 0.9rem; gap: 0.9rem; }
+.lg-rows { min-height: 100%; display: flex; flex-direction: column; }
+.lg-row { flex: 1 0 auto; display: flex; align-items: center; border-bottom: 1px solid var(--border); padding: 0.7rem 0.9rem; gap: 0.9rem; }
 .lg-row.active-row { background: rgba(255,170,0,0.05); }
 .lg-row.out-row { opacity: 0.35; }
 .lg-pname { flex: 1; font-size: 0.85rem; color: var(--text-dim); letter-spacing: 0.08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

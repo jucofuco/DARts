@@ -8,8 +8,8 @@
 <script src="../sfx.js"></script>
 <script src="../utils.js"></script>
 <style>
-.cu-rows { display: flex; flex-direction: column; }
-.cu-row { display: flex; align-items: center; border-bottom: 1px solid var(--border); padding: 0.7rem 0.9rem; gap: 1rem; }
+.cu-rows { min-height: 100%; display: flex; flex-direction: column; }
+.cu-row { flex: 1 0 auto; display: flex; align-items: center; border-bottom: 1px solid var(--border); padding: 0.7rem 0.9rem; gap: 1rem; }
 .cu-row.active-row { background: rgba(255,170,0,0.05); }
 .cu-pname { flex: 1; font-size: 0.85rem; color: var(--text-dim); letter-spacing: 0.08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cu-row.active-row .cu-pname { color: var(--led-amber); text-shadow: 0 0 6px rgba(255,170,0,0.3); }

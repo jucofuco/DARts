@@ -4,10 +4,16 @@ const SFX = (() => {
   let ctx = null;
 
   function getCtx() {
-    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
-    if (ctx.state === 'suspended') ctx.resume();
+    if (!ctx || ctx.state === 'closed') ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // iOS uses 'interrupted' (lock screen, call, tab switch), not just 'suspended'
+    if (ctx.state !== 'running') ctx.resume().catch(() => {});
     return ctx;
   }
+
+  // Re-wake audio when the page comes back or on any touch (needs a user gesture on iOS)
+  ['visibilitychange', 'pageshow', 'touchstart', 'pointerdown'].forEach(ev =>
+    document.addEventListener(ev, () => { if (ctx && ctx.state !== 'running' && ctx.state !== 'closed') ctx.resume().catch(() => {}); }, { passive: true })
+  );
 
   function tone(freq, type, attack, sustain, release, gain = 0.18) {
     const c = getCtx(), o = c.createOscillator(), g = c.createGain();
