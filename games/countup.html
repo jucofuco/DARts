@@ -156,7 +156,6 @@ document.getElementById('start-btn').addEventListener('click', () => {
   document.getElementById('game-screen').style.display = 'flex';
   buildGrid();
   renderAll();
-});
   if (window.goatcounter) {
     window.goatcounter.count({
       path:  'game-started-countup',
@@ -164,6 +163,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
       event: true,
     });
   }
+});
 
 
 function turnTotal() {

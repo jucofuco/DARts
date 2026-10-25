@@ -159,7 +159,6 @@ document.getElementById('start-btn').addEventListener('click', () => {
   document.getElementById('setup-screen').style.display = 'none';
   document.getElementById('game-screen').style.display = 'flex';
   renderAll();
-});
   if (window.goatcounter) {
     window.goatcounter.count({
       path:  'game-started-clock',
@@ -167,6 +166,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
       event: true,
     });
   }
+});
 
 
 function maxPos() { return G.withBull ? 21 : 20; }

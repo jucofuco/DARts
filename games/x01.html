@@ -217,7 +217,6 @@ document.getElementById('start-btn').addEventListener('click', () => {
   G.doubleOut   = document.getElementById('opt-dout').checked;
   G.players.forEach(p => { G.scores[p] = selScore; G.history[p] = []; G.opened[p] = false; });
   launch();
-});
   if (window.goatcounter) {
     window.goatcounter.count({
       path:  'game-started-x01-' + selScore,
@@ -225,7 +224,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
       event: true,
     });
   }
-
+});
 
 document.getElementById('resume-btn').addEventListener('click', () => {
   try { G = JSON.parse(localStorage.getItem(SAVE_KEY)); launch(); }

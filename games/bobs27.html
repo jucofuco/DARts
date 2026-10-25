@@ -151,7 +151,6 @@ document.getElementById('start-btn').addEventListener('click', () => {
   document.getElementById('setup-screen').style.display = 'none';
   document.getElementById('game-screen').style.display = 'flex';
   renderAll();
-});
   if (window.goatcounter) {
     window.goatcounter.count({
       path:  'game-started-bobs27',
@@ -159,6 +158,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
       event: true,
     });
   }
+});
 
 
 function targetLabel() { return G.round > 20 ? 'D-BULL' : `D${G.round}`; }
