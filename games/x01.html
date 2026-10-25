@@ -381,10 +381,11 @@ function doThrow(val, m) {
   const cur      = G.scores[cp];
   const newScore = cur - score;
 
-  if (newScore < 0) {
-    // Bust — score stays, turn ends automatically
+  if (newScore < 0 || (newScore === 1 && G.doubleOut)) {
+    // Bust — score goes back to where the turn started, turn ends automatically
     SFX.bust();
     bustFlash();
+    G.scores[cp] += turnScored();
     G.currentThrows.push({ val, mult: m, bust: true });
     mult = 1;
     renderAll();
@@ -398,6 +399,7 @@ function doThrow(val, m) {
       SFX.bust();
       bustFlash();
       toast('DOUBLE OUT — must finish on a double!');
+      G.scores[cp] += turnScored();
       G.currentThrows.push({ val, mult: m, bust: true });
       mult = 1;
       renderAll();
@@ -431,6 +433,11 @@ function doThrow(val, m) {
   G.currentThrows.push({ val, mult: m, bust: false });
   mult = 1;
   renderAll();
+}
+
+// Points scored so far this turn (before the current dart)
+function turnScored() {
+  return G.currentThrows.reduce((s, th) => (!th || th.bust) ? s : s + th.val * th.mult, 0);
 }
 
 /* ── Next player ── */
