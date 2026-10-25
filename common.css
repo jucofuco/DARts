@@ -151,7 +151,6 @@ body {
   background: var(--led-amber-dim);
   border-color: var(--led-amber);
   color: var(--led-amber);
-  text-shadow: 0 0 8px rgba(255,170,0,0.4);
 }
 
 /* ═══ INPUTS ═══ */
@@ -165,13 +164,12 @@ body {
   padding: 0.75rem 0.9rem;
   width: 100%;
   outline: none;
-  text-shadow: 0 0 6px rgba(255,170,0,0.4);
   transition: border-color 0.15s;
   -webkit-appearance: none;
   caret-color: var(--led-amber);
 }
 .led-input:focus { border-color: var(--led-amber); }
-.led-input::placeholder { color: var(--text-dim); text-shadow: none; }
+.led-input::placeholder { color: var(--text-dim); }
 
 .led-input-sm {
   background: var(--panel);
@@ -184,7 +182,6 @@ body {
   width: 72px;
   text-align: center;
   outline: none;
-  text-shadow: 0 0 6px rgba(255,170,0,0.4);
   -webkit-appearance: none;
 }
 .led-input-sm:focus { border-color: var(--led-amber); }
@@ -232,7 +229,7 @@ body {
 }
 .num-chip:active { transform: scale(0.88); }
 .num-chip.on { background: var(--led-red-dim); border-color: var(--led-red); color: var(--led-red); text-shadow: 0 0 7px var(--led-red-glow); }
-.num-chip.bull.on { background: var(--led-green-dim); border-color: var(--led-green); color: var(--led-green); text-shadow: 0 0 7px var(--led-green-glow); }
+.num-chip.bull.on { background: var(--led-green-dim); border-color: var(--led-green); color: var(--led-green); }
 .num-count { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 0.1em; margin-bottom: 0.4rem; }
 .num-count span { color: var(--led-amber); }
 
@@ -265,8 +262,6 @@ body {
   width: 100%;
   cursor: pointer;
   margin-top: 0.5rem;
-  text-shadow: 0 0 12px var(--led-red-glow);
-  box-shadow: 0 0 20px rgba(255,34,0,0.1);
   transition: all 0.12s;
 }
 .btn-start:active { transform: scale(0.98); box-shadow: 0 0 30px rgba(255,34,0,0.3); }
@@ -327,7 +322,6 @@ body {
   font-size: 1.1rem;
   color: var(--led-red);
   letter-spacing: 0.15em;
-  text-shadow: 0 0 12px var(--led-red-glow);
 }
 .game-logo.amber { color: var(--led-amber); text-shadow: 0 0 12px rgba(255,170,0,0.4); }
 .r-badge { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.1em; margin-left: 0.4rem; }
@@ -398,11 +392,11 @@ body {
   color: var(--text-dim);
   transition: all 0.15s;
 }
-.tslot.hit  { border-color: var(--led-green); color: var(--led-green); background: var(--led-green-dim); text-shadow: 0 0 6px var(--led-green-glow); }
-.tslot.pts  { border-color: var(--led-amber); color: var(--led-amber); background: var(--led-amber-dim); text-shadow: 0 0 6px rgba(255,170,0,0.4); }
+.tslot.hit  { border-color: var(--led-green); color: var(--led-green); background: var(--led-green-dim); }
+.tslot.pts  { border-color: var(--led-amber); color: var(--led-amber); background: var(--led-amber-dim); }
 .tslot.miss { color: var(--text-dim); }
 .tslot.dead { color: var(--text-dim); border-color: var(--border); opacity: 0.5; }
-.tslot.bust { border-color: var(--led-red); color: var(--led-red); background: var(--led-red-dim); text-shadow: 0 0 6px var(--led-red-glow); }
+.tslot.bust { border-color: var(--led-red); color: var(--led-red); background: var(--led-red-dim); }
 
 /* ═══ MULTIPLIER ROW ═══ */
 .mult-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.35rem; }
@@ -420,7 +414,7 @@ body {
   transition: all 0.1s;
 }
 .mbtn:active { transform: scale(0.94); }
-.mbtn.active { border-color: var(--led-amber); color: var(--led-amber); background: var(--led-amber-dim); text-shadow: 0 0 6px rgba(255,170,0,0.4); }
+.mbtn.active { border-color: var(--led-amber); color: var(--led-amber); background: var(--led-amber-dim); }
 
 /* ═══ TARGET GRID ═══ */
 .tgt-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.32rem; }
@@ -434,16 +428,15 @@ body {
   font-size: 1.15rem;
   padding: 0.7rem 0.2rem;
   cursor: pointer; text-align: center;
-  text-shadow: 0 0 8px var(--led-red-glow);
   touch-action: manipulation;
   transition: all 0.08s;
 }
 .tbtn:active { background: var(--led-red-dim); box-shadow: 0 0 14px rgba(255,34,0,0.3); transform: scale(0.94); }
-.tbtn.bull { color: var(--led-green); border-color: var(--led-green-dim); text-shadow: 0 0 8px var(--led-green-glow); }
+.tbtn.bull { color: var(--led-green); border-color: var(--led-green-dim); }
 .tbtn.bull:active { background: var(--led-green-dim); }
-.tbtn.closed { color: var(--text-dim); border-color: var(--border); text-shadow: none; opacity: 0.45; }
+.tbtn.closed { color: var(--text-dim); border-color: var(--border); opacity: 0.45; }
 .tbtn.closed:active { background: rgba(255,255,255,0.03); transform: scale(0.94); }
-.tbtn.scoring { border-color: var(--led-amber); color: var(--led-amber); text-shadow: 0 0 6px rgba(255,170,0,0.35); }
+.tbtn.scoring { border-color: var(--led-amber); color: var(--led-amber); }
 .tbtn.scoring:active { background: var(--led-amber-dim); }
 .tbtn.miss-btn { color: var(--led-amber); border-color: var(--led-amber-dim); text-shadow: 0 0 6px rgba(255,170,0,0.35); font-size: 0.82rem; letter-spacing: 0.06em; }
 .tbtn.miss-btn:active { background: var(--led-amber-dim); }
@@ -475,7 +468,6 @@ body {
   font-size: 0.88rem;
   padding: 0.75rem 0;
   cursor: pointer; text-align: center;
-  text-shadow: 0 0 8px var(--led-red-glow);
   letter-spacing: 0.1em;
   transition: all 0.1s;
 }
@@ -503,8 +495,8 @@ body {
 .score-table tfoot td.pts-lbl { font-size: 0.52rem; color: var(--text-dim); text-shadow: none; letter-spacing: 0.15em; }
 
 .tc { font-size: 1rem; color: var(--led-red); text-shadow: 0 0 8px var(--led-red-glow); padding: 0.4rem; background: var(--panel); border-right: 1px solid var(--border); text-align: center; white-space: nowrap; min-width: 36px; }
-.tc.bull { color: var(--led-green); text-shadow: 0 0 8px var(--led-green-glow); }
-.tc.done { color: var(--text-dim); text-shadow: none; }
+.tc.bull { color: var(--led-green); }
+.tc.done { color: var(--text-dim); }
 .mc { padding: 0.28rem 0.2rem; text-align: center; min-width: 60px; cursor: pointer; transition: background 0.08s; }
 .mc:active { background: rgba(255,34,0,0.05); }
 .mc.ac { background: rgba(255,34,0,0.03); }
@@ -560,7 +552,6 @@ body.theme-bright #win-overlay { background: rgba(200,196,180,0.96); }
   padding: 0.45rem 0.9rem;
   font-family: var(--seg); font-size: 0.85rem;
   color: var(--led-amber);
-  text-shadow: 0 0 6px rgba(255,170,0,0.4);
   letter-spacing: 0.1em;
   opacity: 0; transition: all 0.22s; pointer-events: none;
   z-index: 500; white-space: nowrap;
@@ -616,3 +607,24 @@ body.theme-bright .theme-toggle::after { left: 29px; background: var(--led-amber
   line-height: 1;
 }
 .theme-btn:active { border-color: var(--led-amber); color: var(--led-amber); }
+
+/* ═══ LIT ELEMENTS ═══
+   Glow is reserved for what is "lit" on a real
+   board: the current player's score, the current
+   target and the darts just thrown. Everything
+   else stays flat. */
+.x01-player-row.active-row .x01-remaining,
+.active-row .lit-score,
+.score-table tfoot td.ac,
+.win-name { text-shadow: 0 0 14px rgba(255,170,0,0.45); }
+.big-target .val,
+.x01-checkout { text-shadow: 0 0 14px var(--led-green-glow); }
+.tslot.hit  { text-shadow: 0 0 6px var(--led-green-glow); }
+.tslot.pts  { text-shadow: 0 0 6px rgba(255,170,0,0.4); }
+.tslot.bust { text-shadow: 0 0 6px var(--led-red-glow); }
+body.theme-bright .x01-player-row.active-row .x01-remaining,
+body.theme-bright .active-row .lit-score,
+body.theme-bright .big-target .val,
+body.theme-bright .x01-checkout,
+body.theme-bright .win-name,
+body.theme-bright [class*="tslot"] { text-shadow: none; }
