@@ -42,7 +42,7 @@
   color: var(--text-dim);
   text-transform: uppercase;
   margin-bottom: 0.6rem;
-  border-left: 2px solid var(--led-red);
+  border-left: 2px solid var(--led-amber);
   padding-left: 0.5rem;
 }
 
@@ -68,25 +68,22 @@
   position: absolute;
   left: 0; top: 0; bottom: 0;
   width: 3px;
-  background: var(--led-red);
-  box-shadow: 0 0 8px var(--led-red-glow);
+  background: var(--led-amber);
+  box-shadow: 0 0 8px rgba(255,170,0,0.4);
   opacity: 0;
   transition: opacity 0.12s;
 }
 .game-card:active { transform: scale(0.98); }
 .game-card:active::before { opacity: 1; }
-.game-card.amber::before { background: var(--led-amber); box-shadow: 0 0 8px rgba(255,170,0,0.4); }
 
 .card-icon { font-size: 1.8rem; flex-shrink: 0; }
 .card-body { flex: 1; min-width: 0; }
 .card-title {
   font-size: 1.05rem;
-  color: var(--led-red);
-  text-shadow: 0 0 8px var(--led-red-glow);
+  color: var(--led-amber);
   letter-spacing: 0.08em;
 }
-.game-card.amber .card-title { color: var(--led-amber); text-shadow: 0 0 8px rgba(255,170,0,0.35); }
-.card-desc { font-size: 0.62rem; color: var(--text-dim); letter-spacing: 0.06em; margin-top: 0.25rem; line-height: 1.4; }
+.card-desc { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 0.06em; margin-top: 0.25rem; line-height: 1.4; }
 .card-arrow { color: var(--text-dim); font-size: 1rem; flex-shrink: 0; }
 
 /* ── Footer ── */

@@ -14,18 +14,18 @@
 .kl-row.dead-row { opacity: 0.35; }
 .kl-num {
   width: 44px; height: 44px;
-  border: 1px solid var(--led-red-dim);
+  border: 1px solid var(--border);
   border-radius: 0.4rem;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.2rem; color: var(--led-red);
+  font-size: 1.2rem; color: var(--text-bright);
 
   flex-shrink: 0;
 }
-.kl-row.killer-row .kl-num { border-color: var(--led-green); color: var(--led-green); text-shadow: 0 0 8px var(--led-green-glow); }
+.kl-row.killer-row .kl-num { border-color: var(--led-red); color: var(--led-red); }
 .kl-pname { flex: 1; font-size: 0.85rem; color: var(--text-dim); letter-spacing: 0.06em; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .kl-row.active-row .kl-pname { color: var(--led-amber); }
 .kl-status { font-size: 0.75rem; letter-spacing: 0.15em; color: var(--text-dim); }
-.kl-status.is-killer { color: var(--led-green); text-shadow: 0 0 6px var(--led-green-glow); }
+.kl-status.is-killer { color: var(--led-red); }
 .kl-lives { display: flex; gap: 4px; flex-shrink: 0; }
 .kl-life { width: 12px; height: 12px; border-radius: 50%; background: var(--led-red); box-shadow: 0 0 6px var(--led-red-glow); }
 .kl-life.lost { background: transparent; border: 1.5px solid var(--border); box-shadow: none; }
