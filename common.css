@@ -489,7 +489,7 @@ body {
 .x01-player-row.active-row .x01-pname { color: var(--led-amber); }
 .x01-remaining { font-size: 1.6rem; color: var(--text-bright); letter-spacing: 0.05em; line-height: 1.1; }
 .x01-player-row.active-row .x01-remaining { font-size: 4.2rem; color: var(--led-amber); }
-.x01-remaining.danger { color: var(--led-red); text-shadow: 0 0 12px var(--led-red-glow); }
+.x01-checkout { font-size: 1rem; color: var(--led-green); letter-spacing: 0.08em; margin-top: 0.2rem; }
 .x01-right { width: 110px; border-left: 1px solid var(--border); padding: 0.4rem 0.5rem; display: flex; flex-direction: column; justify-content: space-between; }
 .x01-right { justify-content: center; }
 .x01-round-hist { font-size: 0.8rem; color: var(--text-dim); letter-spacing: 0.06em; line-height: 1.5; overflow: hidden; max-height: 60px; }

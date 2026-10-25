@@ -239,6 +239,57 @@ function freshState() {
   };
 }
 
+/* ── Checkout hints ── */
+const ALL_DARTS = (() => {
+  const d = [];
+  for (let n = 20; n >= 1; n--) d.push({ lbl: 'T' + n, pts: n * 3, m: 3, n });
+  for (let n = 20; n >= 1; n--) d.push({ lbl: String(n), pts: n, m: 1, n });
+  d.push({ lbl: '25', pts: 25, m: 1, n: 25 });
+  for (let n = 20; n >= 1; n--) d.push({ lbl: 'D' + n, pts: n * 2, m: 2, n });
+  d.push({ lbl: 'BULL', pts: 50, m: 2, n: 25 });
+  return d;
+})();
+// Finishing doubles in the order most players aim for them
+const FAV_DOUBLES = ['D20', 'D16', 'D18', 'D12', 'D10', 'D8', 'BULL', 'D14', 'D6', 'D4', 'D2'];
+
+function finishCost(d, doubleOut) {
+  if (doubleOut) {
+    const i = FAV_DOUBLES.indexOf(d.lbl);
+    return i >= 0 ? i / 2 : 6;
+  }
+  return d.m === 1 ? 0 : d.m === 2 ? 1 : 2;
+}
+function setupCost(d) {
+  if (d.lbl === 'T20') return 0;
+  if (d.m === 1) return d.n === 25 ? 2 : 0.5;
+  if (d.lbl === 'T19') return 1;
+  return d.m === 3 ? 2 : 3;
+}
+
+// Cheapest finish for `rem` with up to `left` darts, as a label string ('' if none)
+function checkoutHint(rem, left, doubleOut) {
+  if (rem < 2 || rem > 180 || left < 1) return '';
+  const bestFin = {};
+  ALL_DARTS.forEach(d => {
+    if (doubleOut && d.m !== 2) return;
+    const c = finishCost(d, doubleOut);
+    if (!bestFin[d.pts] || c < bestFin[d.pts].c) bestFin[d.pts] = { d, c };
+  });
+  if (bestFin[rem]) return bestFin[rem].d.lbl;
+
+  let best = null;
+  const consider = (setup, f) => {
+    const c = f.c + setup.reduce((s, d) => s + setupCost(d), 0);
+    if (!best || c < best.c) best = { c, path: [...setup, f.d] };
+  };
+  if (left >= 2) ALL_DARTS.forEach(a => { const f = bestFin[rem - a.pts]; if (f) consider([a], f); });
+  if (best) return best.path.map(d => d.lbl).join(' ');
+  if (left >= 3) ALL_DARTS.forEach(a => ALL_DARTS.forEach(b => {
+    const f = bestFin[rem - a.pts - b.pts]; if (f) consider([a, b], f);
+  }));
+  return best ? best.path.map(d => d.lbl).join(' ') : '';
+}
+
 /* ── Launch game ── */
 function launch() {
   mult = 1;
@@ -305,12 +356,16 @@ function renderBoard() {
         : `<span>${r.total > 0 ? '-' + r.total : '—'}</span>`
     ).join('<br>');
 
+    const canFinish = isActive && !(G.doubleIn && !G.opened[p]);
+    const hint = canFinish ? checkoutHint(rem, 3 - G.currentThrows.length, G.doubleOut) : '';
+
     const row = document.createElement('div');
     row.className = `x01-player-row${isActive ? ' active-row' : ''}`;
     row.innerHTML = `
       <div class="x01-left">
-        <div class="x01-pname">${p}${G.doubleIn && !G.opened[p] ? ' <span style="font-size:0.55rem;color:var(--led-red)">D-IN</span>' : ''}</div>
-        <div class="x01-remaining${rem <= 50 ? ' danger' : ''}">${rem}</div>
+        <div class="x01-pname">${p}${G.doubleIn && !G.opened[p] ? ' <span style="color:var(--led-red)">D-IN</span>' : ''}</div>
+        <div class="x01-remaining">${rem}</div>
+        ${hint ? `<div class="x01-checkout">${hint}</div>` : ''}
       </div>
       <div class="x01-right">
         <div class="x01-round-hist">${histHtml}</div>
