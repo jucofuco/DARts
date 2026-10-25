@@ -55,6 +55,7 @@ html, body { height:100%; }
 
 body {
   font-family: var(--seg);
+  touch-action: manipulation;
   background: var(--cab);
   color: var(--text-bright);
   min-height: 100vh;
@@ -70,6 +71,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh;
   padding: 0 1rem 3rem;
   max-width: 480px;
   margin: 0 auto;
@@ -296,6 +298,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
