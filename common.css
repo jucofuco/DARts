@@ -312,6 +312,7 @@ body {
   font-family: var(--seg);
   font-size: 0.75rem;
   padding: 0.35rem 0.6rem;
+  min-height: 36px;
   cursor: pointer;
   letter-spacing: 0.08em;
   transition: all 0.1s;
@@ -380,8 +381,8 @@ body {
   border-radius: 0.35rem;
   color: var(--text-dim);
   font-family: var(--seg);
-  font-size: 0.7rem;
-  padding: 0.48rem 0;
+  font-size: 0.85rem;
+  min-height: 44px;
   cursor: pointer; text-align: center;
   letter-spacing: 0.06em;
   touch-action: manipulation;
@@ -400,7 +401,8 @@ body {
   color: var(--text-bright);
   font-family: var(--seg);
   font-size: 1.15rem;
-  padding: 0.7rem 0.2rem;
+  min-height: 44px;
+  padding: 0.5rem 0.2rem;
   cursor: pointer; text-align: center;
   touch-action: manipulation;
   transition: all 0.08s;
@@ -422,8 +424,8 @@ body {
   border-radius: 0.4rem;
   color: var(--text-dim);
   font-family: var(--seg);
-  font-size: 0.7rem;
-  padding: 0.75rem 0;
+  font-size: 0.85rem;
+  min-height: 48px;
   cursor: pointer; text-align: center;
   letter-spacing: 0.08em;
   transition: all 0.1s;
@@ -435,8 +437,8 @@ body {
   border-radius: 0.4rem;
   color: var(--led-amber);
   font-family: var(--seg);
-  font-size: 0.88rem;
-  padding: 0.75rem 0;
+  font-size: 0.95rem;
+  min-height: 48px;
   cursor: pointer; text-align: center;
   letter-spacing: 0.1em;
   transition: all 0.1s;
