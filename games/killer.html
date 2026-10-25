@@ -194,6 +194,13 @@ document.getElementById('start-btn').addEventListener('click', () => {
   }
 });
 
+const sum = (es, k) => es.reduce((s, e) => s + (e[k] || 0), 0);
+Stats.rows = [
+  Stats.DARTS, Stats.HITRATE,
+  ['Lives taken', es => sum(es, 'kills')],
+  ['Own goals',   es => sum(es, 'self')],
+  ['Lives left',  (es, p) => G.lives[p]],
+];
 
 function isKiller(p) { return G.marks[p] >= 3; }
 function isAlive(p)  { return G.lives[p] > 0; }
@@ -260,11 +267,12 @@ function doThrow(targetPlayer) {
     lives: JSON.parse(JSON.stringify(G.lives)),
     marks: JSON.parse(JSON.stringify(G.marks)),
     currentThrows: JSON.parse(JSON.stringify(G.currentThrows)),
-    currentPlayer: G.currentPlayer, round: G.round
+    currentPlayer: G.currentPlayer, round: G.round,
+    log: Stats.mark(G)
   });
-
   const cp = G.players[G.currentPlayer];
-
+  Stats.log(G, { p: cp, m: targetPlayer === null ? 0 : mult, kills: 0, self: 0 });
+  const entry = G.log[G.log.length - 1];
   if (targetPlayer === null) {
     SFX.miss();
     G.currentThrows.push(null);
@@ -278,6 +286,7 @@ function doThrow(targetPlayer) {
   if (targetPlayer === cp) {
     if (isKiller(cp)) {
       // Killer hits own number — loses own lives!
+      entry.self = Math.min(G.lives[cp], mult);
       G.lives[cp] = Math.max(0, G.lives[cp] - mult);
       SFX.bust();
       G.currentThrows.push({ lbl: `-${mult}♥`, kind: 'kill' });
@@ -297,6 +306,7 @@ function doThrow(targetPlayer) {
   } else {
     // Hitting another player's number
     if (isKiller(cp)) {
+      entry.kills = Math.min(G.lives[targetPlayer], mult);
       G.lives[targetPlayer] = Math.max(0, G.lives[targetPlayer] - mult);
       SFX.score();
       G.currentThrows.push({ lbl: `☠${num}`, kind: 'kill' });
@@ -346,6 +356,7 @@ document.getElementById('undo-btn').addEventListener('click', () => {
   if (!G.undoStack.length) { toast('NOTHING TO UNDO'); return; }
   const s = G.undoStack.pop();
   G.lives = s.lives; G.marks = s.marks; G.currentThrows = s.currentThrows; G.currentPlayer = s.currentPlayer; G.round = s.round;
+  Stats.rewind(G, s.log);
   mult = 1; renderAll(); toast('UNDONE');
 });
 

@@ -254,6 +254,16 @@ document.getElementById('resume-btn').addEventListener('click', () => {
   catch(e) { toast('LOAD ERROR'); }
 });
 
+const marks = es => es.reduce((s, e) => s + (e.marks || 0), 0);
+Stats.rows = [
+  Stats.DARTS,
+  ['MPR',        es => Stats.darts(es) ? (marks(es) / Stats.darts(es) * 3).toFixed(2) : '—'],
+  ['Points',     (es, p) => G.points[p] || 0],
+  Stats.TREBLES, Stats.DOUBLES,
+  ['Bull marks', es => marks(es.filter(e => e.v === 25))],
+  Stats.MISSES,
+];
+
 function freshState() {
   return {
     players: [], targets: [], cutthroat: false, maxRounds: 20,
@@ -415,9 +425,11 @@ function doThrow(target, m, dead) {
     currentThrows: JSON.parse(JSON.stringify(G.currentThrows)),
     currentPlayer: G.currentPlayer,
     round:         G.round,
+    log:           Stats.mark(G),
   });
 
-  let scored = false;
+  let scored = false, scoredPts = 0;
+  const cpName = G.players[G.currentPlayer];
 
   if (target !== null && m > 0) {
     const cp = G.players[G.currentPlayer];
@@ -444,6 +456,7 @@ function doThrow(target, m, dead) {
           if (G.players.some(p => p !== cp && G.hits[p][target] < 3)) {
             G.points[cp] += bonusHits * val;
             scored = true;
+            scoredPts = bonusHits * val;
           }
         }
       }
@@ -462,11 +475,12 @@ function doThrow(target, m, dead) {
 
       G.currentThrows.push({ target, mult: m, scored });
     }
+    Stats.log(G, { p: cpName, v: target === 'B' ? 25 : target, m, marks: dead ? 0 : m, pts: scoredPts });
   } else {
     SFX.miss();
     G.currentThrows.push(null);
+    Stats.log(G, { p: cpName, m: 0, marks: 0 });
   }
-
   mult = 1;
   renderAll();
   checkWin();
@@ -555,6 +569,7 @@ document.getElementById('undo-btn').addEventListener('click', () => {
   G.currentThrows = s.currentThrows;
   G.currentPlayer = s.currentPlayer;
   G.round         = s.round;
+  Stats.rewind(G, s.log);
   mult = 1;
   renderAll();
   toast('UNDONE');

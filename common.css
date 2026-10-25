@@ -502,10 +502,13 @@ body {
   position: fixed; inset: 0;
   background: rgba(5,5,6,0.96);
   z-index: 200;
-  flex-direction: column; align-items: center; justify-content: center;
-  gap: 1.1rem; padding: 2rem;
+  flex-direction: column; align-items: center;
+  gap: 1.1rem; padding: 2rem 1rem;
+  overflow-y: auto;
   backdrop-filter: blur(8px);
 }
+#win-overlay > :first-child { margin-top: auto; }
+#win-overlay > :last-child { margin-bottom: auto; }
 body.theme-bright #win-overlay { background: rgba(200,196,180,0.96); }
 #win-overlay.show { display: flex; }
 .win-lbl { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); }
@@ -582,6 +585,15 @@ body.theme-bright .theme-toggle::after { left: 29px; background: var(--led-amber
 /* ═══ ACTIVE PLAYER ROW (target / count games) ═══ */
 .game-scroll .active-row { flex-grow: 2; }
 .active-row .lit-score { font-size: 3.4rem; line-height: 1; }
+
+/* ═══ POST-GAME STATS ═══ */
+#win-stats { width: 100%; max-width: 480px; overflow-x: auto; }
+.stats-table { border-collapse: collapse; margin: 0 auto; font-size: 0.85rem; }
+.stats-table th, .stats-table td { padding: 0.4rem 0.6rem; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.stats-table th { font-weight: 400; color: var(--text-dim); max-width: 7rem; overflow: hidden; text-overflow: ellipsis; }
+.stats-table td { color: var(--text-bright); }
+.stats-table .stats-lbl { text-align: left; color: var(--text-dim); }
+.stats-table .win-col { color: var(--led-amber); }
 
 /* ═══ LIT ELEMENTS ═══
    Glow is reserved for what is "lit" on a real

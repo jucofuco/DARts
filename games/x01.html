@@ -235,9 +235,23 @@ function freshState() {
     players: [], startScore: 501, maxRounds: 0, doubleIn: false, doubleOut: false,
     scores: {}, history: {}, opened: {},
     currentPlayer: 0, currentThrows: [],
-    round: 1, undoStack: []
+    round: 1, undoStack: [], log: []
   };
 }
+
+/* ── Stats shown after the game ── */
+const turnTotals = p => (G.history[p] || []).map(t => t.total);
+Stats.rows = [
+  Stats.DARTS,
+  ['3-dart avg', (es, p) => Stats.avg3(G.startScore - G.scores[p], Stats.darts(es))],
+  ['Best turn',  (es, p) => Math.max(0, ...turnTotals(p))],
+  ['100+',       (es, p) => turnTotals(p).filter(t => t >= 100 && t < 140).length],
+  ['140+',       (es, p) => turnTotals(p).filter(t => t >= 140 && t < 180).length],
+  ['180s',       (es, p) => turnTotals(p).filter(t => t === 180).length],
+  Stats.TREBLES,
+  Stats.DOUBLES,
+  ['Busts',      (es, p) => (G.history[p] || []).filter(t => t.bust).length],
+];
 
 /* ── Checkout hints ── */
 const ALL_DARTS = (() => {
@@ -406,9 +420,11 @@ function doThrow(val, m) {
     currentThrows: JSON.parse(JSON.stringify(G.currentThrows)),
     currentPlayer: G.currentPlayer,
     round:         G.round,
+    log:           Stats.mark(G),
   });
 
   const cp = G.players[G.currentPlayer];
+  Stats.log(G, { p: cp, v: val, m });
 
   // Miss
   if (val === 0 || m === 0) {
@@ -553,6 +569,7 @@ document.getElementById('undo-btn').addEventListener('click', () => {
   G.currentThrows = s.currentThrows;
   G.currentPlayer = s.currentPlayer;
   G.round         = s.round;
+  Stats.rewind(G, s.log);
   mult = 1;
   renderAll();
   toast('UNDONE');

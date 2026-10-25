@@ -164,6 +164,11 @@ document.getElementById('start-btn').addEventListener('click', () => {
   }
 });
 
+Stats.rows = [
+  Stats.DARTS, Stats.HITRATE,
+  ['Points', (es, p) => G.scores[p]],
+  Stats.BESTTURN, Stats.TREBLES, Stats.DOUBLES,
+];
 
 function renderAll() {
   const cp = G.players[G.currentPlayer];
@@ -191,9 +196,9 @@ function renderAll() {
 
 function doThrow(m) {
   if (G.currentThrows.length >= 3) { toast('END TURN FIRST'); return; }
-  G.undoStack.push({ scores: JSON.parse(JSON.stringify(G.scores)), currentThrows: JSON.parse(JSON.stringify(G.currentThrows)), currentPlayer: G.currentPlayer, round: G.round });
-
+  G.undoStack.push({ scores: JSON.parse(JSON.stringify(G.scores)), currentThrows: JSON.parse(JSON.stringify(G.currentThrows)), currentPlayer: G.currentPlayer, round: G.round, log: Stats.mark(G) });
   const cp = G.players[G.currentPlayer];
+  Stats.log(G, { p: cp, v: G.round, m, pts: G.round * m });
   if (m === 0) {
     SFX.miss();
     G.currentThrows.push(null);
@@ -239,6 +244,7 @@ document.getElementById('undo-btn').addEventListener('click', () => {
   if (!G.undoStack.length) { toast('NOTHING TO UNDO'); return; }
   const s = G.undoStack.pop();
   G.scores = s.scores; G.currentThrows = s.currentThrows; G.currentPlayer = s.currentPlayer; G.round = s.round;
+  Stats.rewind(G, s.log);
   renderAll(); toast('UNDONE');
 });
 

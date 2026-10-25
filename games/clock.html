@@ -168,6 +168,16 @@ document.getElementById('start-btn').addEventListener('click', () => {
   }
 });
 
+const bestStreak = es => {
+  let best = 0, cur = 0;
+  es.forEach(e => { cur = e.m > 0 ? cur + 1 : 0; best = Math.max(best, cur); });
+  return best;
+};
+Stats.rows = [
+  Stats.DARTS, Stats.HITRATE,
+  ['Best streak', bestStreak],
+  ['Progress', (es, p) => `${Math.min(G.pos[p] - 1, maxPos())}/${maxPos()}`],
+];
 
 function maxPos() { return G.withBull ? 21 : 20; }
 function posLabel(n) { return n > 20 ? 'BULL' : String(n); }
@@ -204,9 +214,9 @@ function renderAll() {
 
 function doThrow(hit) {
   if (G.currentThrows.length >= 3) { toast('END TURN FIRST'); return; }
-  G.undoStack.push({ pos: JSON.parse(JSON.stringify(G.pos)), currentThrows: [...G.currentThrows], currentPlayer: G.currentPlayer, round: G.round });
-
+  G.undoStack.push({ pos: JSON.parse(JSON.stringify(G.pos)), currentThrows: [...G.currentThrows], currentPlayer: G.currentPlayer, round: G.round, log: Stats.mark(G) });
   const cp = G.players[G.currentPlayer];
+  Stats.log(G, { p: cp, m: hit ? (G.skipMode ? mult : 1) : 0 });
   if (!hit) {
     SFX.miss();
     G.currentThrows.push(null);
@@ -243,6 +253,7 @@ document.getElementById('undo-btn').addEventListener('click', () => {
   if (!G.undoStack.length) { toast('NOTHING TO UNDO'); return; }
   const s = G.undoStack.pop();
   G.pos = s.pos; G.currentThrows = s.currentThrows; G.currentPlayer = s.currentPlayer; G.round = s.round;
+  Stats.rewind(G, s.log);
   mult = 1; renderAll(); toast('UNDONE');
 });
 

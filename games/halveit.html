@@ -205,6 +205,18 @@ document.getElementById('start-btn').addEventListener('click', () => {
   }
 });
 
+// A round where every dart missed is a round the score got halved
+const halvedRounds = es => {
+  const byR = {};
+  es.forEach(e => { byR[e.r] = (byR[e.r] || 0) + (e.m > 0 ? 1 : 0); });
+  return Object.values(byR).filter(h => h === 0).length;
+};
+Stats.rows = [
+  Stats.DARTS, Stats.HITRATE,
+  ['Halved', halvedRounds],
+  Stats.BESTTURN,
+  ['Points', (es, p) => G.scores[p]],
+];
 
 function curTarget() { return G.seq[G.round - 1]; }
 
@@ -246,10 +258,10 @@ function renderAll() {
 // hits = how many of the 3 darts hit (records them all at once OR one at a time)
 function doThrow(hit) {
   if (G.currentThrows.length >= 3) { toast('END TURN FIRST'); return; }
-  G.undoStack.push({ scores: JSON.parse(JSON.stringify(G.scores)), currentThrows: [...G.currentThrows], currentPlayer: G.currentPlayer, round: G.round });
-
+  G.undoStack.push({ scores: JSON.parse(JSON.stringify(G.scores)), currentThrows: [...G.currentThrows], currentPlayer: G.currentPlayer, round: G.round, log: Stats.mark(G) });
   const cp = G.players[G.currentPlayer];
   const t = curTarget();
+  Stats.log(G, { p: cp, m: hit, pts: t.val * hit });
 
   if (hit === 0) {
     SFX.miss();
@@ -300,6 +312,7 @@ document.getElementById('undo-btn').addEventListener('click', () => {
   if (!G.undoStack.length) { toast('NOTHING TO UNDO'); return; }
   const s = G.undoStack.pop();
   G.scores = s.scores; G.currentThrows = s.currentThrows; G.currentPlayer = s.currentPlayer; G.round = s.round;
+  Stats.rewind(G, s.log);
   renderAll(); toast('UNDONE');
 });
 

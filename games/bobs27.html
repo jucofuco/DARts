@@ -159,6 +159,13 @@ document.getElementById('start-btn').addEventListener('click', () => {
   }
 });
 
+Stats.rows = [
+  Stats.DARTS,
+  ['Doubles hit', es => `${Stats.hits(es)}/${Stats.darts(es)}`],
+  Stats.HITRATE,
+  ['Best round', es => Math.max(0, ...es.map(e => e.h))],
+  ['Score', (es, p) => G.scores[p]],
+];
 
 function targetLabel() { return G.round > 20 ? 'D-BULL' : `D${G.round}`; }
 function targetValue() { return G.round > 20 ? 50 : G.round * 2; }
@@ -189,11 +196,12 @@ function recordTurn(hits) {
   G.undoStack.push({
     scores: JSON.parse(JSON.stringify(G.scores)),
     eliminated: JSON.parse(JSON.stringify(G.eliminated)),
-    currentPlayer: G.currentPlayer, round: G.round
+    currentPlayer: G.currentPlayer, round: G.round,
+    log: Stats.mark(G)
   });
-
   const cp = G.players[G.currentPlayer];
   const v = targetValue();
+  Stats.log(G, { p: cp, n: 3, h: hits, m: hits ? 2 : 0, pts: hits ? v * hits : -v });
 
   if (hits === 0) {
     G.scores[cp] -= v;
@@ -266,6 +274,7 @@ document.getElementById('undo-btn').addEventListener('click', () => {
   if (!G.undoStack.length) { toast('NOTHING TO UNDO'); return; }
   const s = G.undoStack.pop();
   G.scores = s.scores; G.eliminated = s.eliminated; G.currentPlayer = s.currentPlayer; G.round = s.round;
+  Stats.rewind(G, s.log);
   renderAll(); toast('UNDONE');
 });
 
