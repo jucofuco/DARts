@@ -36,7 +36,7 @@
   --led-green:     #1a6e2a;
   --led-green-dim: #c8e8cc;
   --led-green-glow:rgba(20,100,36,0.25);
-  --text-dim:      #a09070;
+  --text-dim:      #6e5f43;
   --text-bright:   #1c1208;
   --dot-on:        #1a6e2a;
   --dot-glow:      rgba(20,100,36,0.3);
@@ -52,6 +52,8 @@ body.theme-bright {
 /* ═══ RESET & BASE ═══ */
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html, body { height:100%; }
+/* Base size — every rem in the app scales from this */
+html { font-size: 115%; }
 
 body {
   font-family: var(--seg);
@@ -97,8 +99,8 @@ body {
 
 .s-label {
   display: block;
-  font-size: 0.6rem;
-  letter-spacing: 0.25em;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-dim);
   margin-bottom: 0.5rem;
@@ -133,7 +135,7 @@ body {
   color: var(--text-dim);
   font-family: var(--seg);
   font-size: 1.1rem;
-  width: 50px; height: 50px;
+  min-width: 50px; height: 50px; padding: 0 0.4rem;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; user-select: none;
   transition: all 0.1s;
@@ -188,7 +190,7 @@ body {
 .led-input-sm:focus { border-color: var(--led-amber); }
 
 .row2 { display: flex; gap: 0.75rem; align-items: center; }
-.row2-hint { color: var(--text-dim); font-size: 0.7rem; letter-spacing: 0.05em; line-height: 1.5; }
+.row2-hint { color: var(--text-dim); font-size: 0.75rem; letter-spacing: 0.05em; line-height: 1.5; }
 
 /* ═══ PILLS ═══ */
 .pill-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
@@ -198,7 +200,7 @@ body {
   border-radius: 2rem;
   color: var(--text-dim);
   font-family: var(--seg);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   padding: 0.4rem 0.8rem;
   cursor: pointer; user-select: none;
   letter-spacing: 0.05em;
@@ -231,7 +233,7 @@ body {
 .num-chip:active { transform: scale(0.88); }
 .num-chip.on { background: var(--led-red-dim); border-color: var(--led-red); color: var(--led-red); text-shadow: 0 0 7px var(--led-red-glow); }
 .num-chip.bull.on { background: var(--led-green-dim); border-color: var(--led-green); color: var(--led-green); text-shadow: 0 0 7px var(--led-green-glow); }
-.num-count { font-size: 0.65rem; color: var(--text-dim); letter-spacing: 0.1em; margin-bottom: 0.4rem; }
+.num-count { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 0.1em; margin-bottom: 0.4rem; }
 .num-count span { color: var(--led-amber); }
 
 .btn-random {
@@ -258,7 +260,7 @@ body {
   color: var(--led-red);
   font-family: var(--seg);
   font-size: 1.2rem;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.12em;
   padding: 1rem;
   width: 100%;
   cursor: pointer;
@@ -337,7 +339,7 @@ body {
   border-radius: 0.35rem;
   color: var(--text-dim);
   font-family: var(--seg);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   padding: 0.35rem 0.6rem;
   cursor: pointer;
   letter-spacing: 0.08em;
@@ -350,11 +352,10 @@ body {
   background: rgba(255,34,0,0.1);
   border-bottom: 1px solid rgba(255,34,0,0.25);
   color: var(--led-red);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   text-align: center;
   padding: 0.3rem;
-  letter-spacing: 0.2em;
-  text-shadow: 0 0 8px var(--led-red-glow);
+  letter-spacing: 0.12em;
 }
 .last-bar.show { display: block; }
 
@@ -382,8 +383,8 @@ body {
 }
 
 .turn-row { display: flex; align-items: center; justify-content: space-between; }
-.turn-lbl { font-size: 0.52rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); }
-.turn-name { font-size: 1rem; color: var(--led-amber); text-shadow: 0 0 8px rgba(255,170,0,0.45); letter-spacing: 0.08em; }
+.turn-lbl { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); }
+.turn-name { font-size: 1.1rem; color: var(--led-amber); letter-spacing: 0.08em; }
 
 .throw-slots { display: flex; gap: 0.28rem; }
 .tslot {
@@ -557,7 +558,7 @@ body.theme-bright #win-overlay { background: rgba(200,196,180,0.96); }
   border: 1px solid var(--border);
   border-radius: 0.4rem;
   padding: 0.45rem 0.9rem;
-  font-family: var(--seg); font-size: 0.78rem;
+  font-family: var(--seg); font-size: 0.85rem;
   color: var(--led-amber);
   text-shadow: 0 0 6px rgba(255,170,0,0.4);
   letter-spacing: 0.1em;
@@ -578,7 +579,7 @@ body.theme-bright #win-overlay { background: rgba(200,196,180,0.96); }
 
 /* ═══ THEME TOGGLE (hub only) ═══ */
 .theme-bar { display: flex; justify-content: center; align-items: center; gap: 0.6rem; margin: 1rem 0 1.6rem; }
-.theme-lbl { font-size: 0.58rem; letter-spacing: 0.2em; color: var(--text-dim); }
+.theme-lbl { font-size: 0.75rem; letter-spacing: 0.12em; color: var(--text-dim); }
 .theme-toggle {
   width: 52px; height: 26px;
   background: var(--panel);
@@ -607,7 +608,7 @@ body.theme-bright .theme-toggle::after { left: 29px; background: var(--led-amber
   border-radius: 0.35rem;
   color: var(--text-dim);
   font-family: var(--seg);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   padding: 0.35rem 0.5rem;
   cursor: pointer;
   letter-spacing: 0.06em;
