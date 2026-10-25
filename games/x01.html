@@ -348,6 +348,7 @@ function doThrow(val, m) {
   G.undoStack.push({
     scores:        JSON.parse(JSON.stringify(G.scores)),
     history:       JSON.parse(JSON.stringify(G.history)),
+    opened:        JSON.parse(JSON.stringify(G.opened)),
     currentThrows: JSON.parse(JSON.stringify(G.currentThrows)),
     currentPlayer: G.currentPlayer,
     round:         G.round,
@@ -494,6 +495,7 @@ document.getElementById('undo-btn').addEventListener('click', () => {
   const s        = G.undoStack.pop();
   G.scores        = s.scores;
   G.history       = s.history;
+  if (s.opened) G.opened = s.opened;
   G.currentThrows = s.currentThrows;
   G.currentPlayer = s.currentPlayer;
   G.round         = s.round;
